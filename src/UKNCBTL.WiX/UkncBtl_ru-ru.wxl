@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<WixLocalization>
+
+    <String Id="Language">1049</String>
+    <String Id="Codepage">1251</String>
+    <String Id="LocaleId">ru-RU</String>
+    <String Id="Manufacturer">Никита Зимин &amp; Феликс Лазарев</String>
+    <String Id="PackageDescription">УКНЦ Back to Life</String>
+    <String Id="PackageComments">Эмулятор компьютера УКНЦ</String>
+    <String Id="AppComments">Эмулятор компьютера УКНЦ</String>
+    <String Id="AppContact">nzeemin@gmail.com, felix.lazarev@gmail.com</String>
+    <String Id="ProductWebSite">http://www.felixl.com/Uknc</String>
+
+    <!-- Launch conditions -->
+    <String Id="ConditionWindowsXPor2003orAbove">This application can be installed only on Windows XP or Windows 2003 or above.</String>
+    <String Id="ConditionAdministrator">An administrator must approve or install [ProductName].</String>
+    <String Id="ConditionNewVersionDetected">A later version of [ProductName] is already installed.</String>
+
+    <!-- Features -->
+    <String Id="FeatureApplicationFiles">Приложение</String>
+    <String Id="FeatureApplicationFilesDescription">Файлы приложения.</String>
+
+</WixLocalization>

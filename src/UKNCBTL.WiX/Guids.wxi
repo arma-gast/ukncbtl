@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Include>
+    <?define ProductId      = "{312182C9-EAB2-4528-B0B6-0E0B59F8420B}" ?>
+    <?define UpgradeCode    = "{E1C112CF-F1C8-4e20-9331-07A6AC9C12F6}" ?>
+
+    <?define ProductVersion = "1.0" ?>
+
+    <?define ProductName    = "UKNCBTL" ?>
+    <?define AppVersion     = "1.0.0.0" ?>
+
+    <!-- Язык инсталлятора - "en" или "ru" -->
+    <?define InstallerLanguage = "ru" ?>
+
+    <!-- Пути, по которым находятся исходные файлы -->
+    <?define BitmapsSource  = "$(sys.SOURCEFILEDIR)\ui\Bitmaps" ?>
+    <?define BinariesSource = "$(sys.SOURCEFILEDIR)\bin" ?>
+
+</Include>

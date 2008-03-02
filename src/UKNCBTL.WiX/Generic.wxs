@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+
+<?include Guids.wxi ?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2003/01/wi">
+    <Product 
+        Name="$(var.ProductName)"
+        Id="$(var.ProductId)"
+        Language="$(loc.Language)"
+        Codepage="1251"
+        Version="$(var.AppVersion)"
+        Manufacturer="$(loc.Manufacturer)"
+        UpgradeCode="$(var.UpgradeCode)">
+
+        <Package 
+            Id="????????-????-????-????-????????????"
+            Manufacturer="$(loc.Manufacturer)"
+            Description="$(loc.PackageDescription)"
+            Comments="$(loc.PackageComments)"
+            Compressed="yes"
+            InstallerVersion="200"
+            Languages="$(loc.Language)"
+            Keywords="Database, Installer"
+            ShortNames="no"
+            SummaryCodepage="$(loc.Codepage)" />
+
+        <!-- Major upgrade -->
+        <Upgrade Id="$(var.UpgradeCode)">
+          <UpgradeVersion 
+            Minimum="$(var.AppVersion)" 
+            OnlyDetect="yes"
+            Property="NEWERVERSIONDETECTED" />
+          <UpgradeVersion
+            Minimum="1.0.0.0"
+            IncludeMinimum="yes"
+            Maximum="$(var.AppVersion)"
+            IncludeMaximum="no"
+            Property="OLDERVERSIONBEINGUPGRADED" />
+        </Upgrade>
+
+        <!-- Launch conditions -->
+        <Condition Message="$(loc.ConditionNewVersionDetected)">NOT NEWERVERSIONDETECTED</Condition>
+        <Condition Message="$(loc.ConditionAdministrator)">Privileged</Condition>
+
+        <!-- Media -->
+        <Media Id="1" Cabinet="UkncBtl.cab" EmbedCab="yes" />
+
+        <!-- Properties -->
+        <Property Id="ALLUSERS" Value="1" />
+        <Property Id="ARPHELPLINK" Value="$(loc.ProductWebSite)" />
+        <Property Id="ARPURLINFOABOUT" Value="$(loc.ProductWebSite)" />
+        <Property Id="ARPURLUPDATEINFO" Value="$(loc.ProductWebSite)" />
+        <Property Id="ARPCOMMENTS" Value="$(loc.AppComments)" />
+        <Property Id="ARPCONTACT" Value="$(loc.AppContact)" />
+        <!--Property Id="ARPNOMODIFY" Value="1" /-->
+
+        <Property Id="LOCALEID" Value="$(loc.LocaleId)" />
+
+        <Property Id="VALIDATED" Value="1" />
+
+        <!-- Directories -->
+        <DirectoryRef Id="TARGETDIR" />
+
+        <!-- Features -->
+        <Feature Id="FeatureApplicationFiles"
+                Title="$(loc.FeatureApplicationFiles)" Description="$(loc.FeatureApplicationFilesDescription)"
+                Level="1" AllowAdvertise="no" Absent="allow"
+                InstallDefault="local" TypicalDefault="install"
+                ConfigurableDirectory="INSTALLDIR"
+                Display="expand">
+
+            <ComponentRef Id="componentMain" />
+            <ComponentRef Id="componentRoms" />
+            <ComponentRef Id="componentDisks" />
+
+        </Feature>
+
+        <!-- Directories -->
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFilesFolder" Name="PFiles">
+                <Directory Id="INSTALLDIR" Name="UKNCBTL">
+                    <Directory Id="DirRoms" Name="roms"></Directory>
+                    <Directory Id="DirDisks" Name="disks"></Directory>
+                </Directory>
+            </Directory>
+            <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
+                <Directory Id="ProgramMenuDir" Name="UKNCBTL" LongName="UKNC Back to Life" />
+            </Directory>
+        </Directory>
+
+        <!-- Files -->
+        <DirectoryRef Id="INSTALLDIR">
+            <Component Id="componentMain" DiskId="1" Guid="{A1FC5400-8048-4cf0-8D05-C367510225CB}">
+                <File Id="main0" Name="README.TXT" LongName="README.txt" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\README.txt" />
+                <File Id="main1" Name="UKNCBTL.EXE" LongName="UKNCBTL.exe" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\UKNCBTL.exe">
+                    <Shortcut Id="shortcut1" Name="UKNCBACK" LongName="UKNC Back to Life" WorkingDirectory="INSTALLDIR" Directory="ProgramMenuDir" />
+                </File>
+                <File Id="main2" Name="UKNC_ROM.BIN" LongName="uknc_rom.bin" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\uknc_rom.bin" />
+                <File Id="main3" Name="MSVCR80.DLL" LongName="msvcr80.dll" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\msvcr80.dll" />
+                <File Id="main4" Name="MSVCR80.MAN" LongName="Microsoft.VC80.CRT.manifest" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\Microsoft.VC80.CRT.manifest" />
+                <File Id="main5" Name="RT11DSK.EXE" LongName="rt11dsk.exe" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\rt11dsk.exe" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="DirRoms">
+            <Component Id="componentRoms" DiskId="1" Guid="{1FF26951-570D-4f9c-9B95-9AB2270C11CF}">
+                <File Id="rom1" Name="ROMBASIC.BIN" LongName="romctr_basic.bin" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\romctr_basic.bin" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="DirDisks">
+            <Component Id="componentDisks" DiskId="1" Guid="{6BC57414-0516-4675-8FAB-B07AA037F513}">
+                <File Id="disk1" Name="SYSIMAGE.DSK" LongName="sysimage.dsk" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\sysimage.dsk" />
+                <File Id="disk2" Name="SYS1002.DSK" LongName="sys1002.dsk" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\sys1002.dsk" />
+                <File Id="disk3" Name="BASIC.DSK" LongName="basic.dsk" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\basic.dsk" />
+                <File Id="disk4" Name="GAME.DSK" LongName="game.dsk" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\game.dsk" />
+                <File Id="disk5" Name="DISK1.DSK" LongName="disk1.dsk" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\disk1.dsk" />
+            </Component>
+        </DirectoryRef>
+
+        <!-- Install Sequences -->
+        <InstallExecuteSequence>
+            <RemoveExistingProducts After="InstallValidate" />
+
+            <LaunchConditions After="AppSearch" />
+
+        </InstallExecuteSequence>
+
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+        <UIRef Id="WixUI_InstallDir" />
+
+    </Product>
+</Wix>
