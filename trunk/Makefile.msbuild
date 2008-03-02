@@ -1,0 +1,94 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <PropertyGroup>
+        <AppName>UKNCBTL</AppName>
+        <WixRoot>C:\bin\wix\</WixRoot>
+    </PropertyGroup>
+
+
+    <!-- Сборка всего одной командой -->
+    <Target Name="build">
+        <MakeDir Directories="./build" />
+        
+        <CallTarget Targets="build-main" />
+        <CallTarget Targets="build-rt11dsk" />
+        <CallTarget Targets="build-setup" />
+    </Target>
+
+    <!-- Очистка всего одной командой -->
+    <Target Name="clean">
+        <!--CallTarget Targets="clean-main" /-->
+        <CallTarget Targets="clean-setup" />
+        
+        <RemoveDir Directories="./build" />
+    </Target>
+
+
+    <!-- Сборка основного .exe-файла -->
+    <Target Name="build-main">
+
+        <VCBuild Projects="src\UKNCBTL\UKNCBTL.vcproj"
+                 Configuration="Product"
+                 Rebuild="true" />
+                
+    </Target>
+
+    <!-- Сборка утилиты rt11dsk -->
+    <Target Name="build-rt11dsk">
+
+        <VCBuild Projects="src\rt11dsk\rt11dsk.vcproj"
+                 Configuration="Release"
+                 Rebuild="true" />
+                
+    </Target>
+
+
+    <ItemGroup>
+        <LibDskFiles Include=".\lib\disks\*.dsk" />
+        <SetupWixobj Include=".\src\UKNCBTL.WiX\*.wixobj" />
+        <SetupMsi Include=".\src\UKNCBTL.WiX\UkncBtl.msi" />
+    </ItemGroup>
+
+    <Target Name="prepare-setup">
+        <Copy SourceFiles=".\src\UKNCBTL\Product\UKNCBTL.exe"
+              DestinationFolder=".\src\UKNCBTL.WiX\bin" />
+        <Copy SourceFiles=".\src\rt11dsk\Release\rt11dsk.exe"
+              DestinationFolder=".\src\UKNCBTL.WiX\bin" />
+
+        <Copy SourceFiles=".\lib\roms\uknc_rom.bin"
+              DestinationFolder=".\src\UKNCBTL.WiX\bin" />
+        <Copy SourceFiles=".\lib\roms\romctr_basic.bin"
+              DestinationFolder=".\src\UKNCBTL.WiX\bin" />
+
+        <Copy SourceFiles="@(LibDskFiles)"
+              DestinationFolder=".\src\UKNCBTL.WiX\bin" />
+
+        <Copy SourceFiles=".\docs\README.txt"
+              DestinationFolder=".\src\UKNCBTL.WiX\bin" />
+    </Target>
+
+    <Target Name="build-setup" DependsOnTargets="clean-setup;prepare-setup">
+
+        <!-- Candle -->
+        <Exec Command="$(WixRoot)candle.exe -nologo Generic.wxs"
+              WorkingDirectory=".\src\UKNCBTL.WiX"/>
+
+        <!-- Light -->
+        <Exec Command="$(WixRoot)light.exe -nologo Generic.wixobj $(WixRoot)wixui.wixlib -out UkncBtl.msi -loc WixUI_ru-ru.wxl -loc UkncBtl_ru-ru.wxl"
+              WorkingDirectory=".\src\UKNCBTL.WiX"/>
+
+        <!-- Cleanup intermediates -->
+        <Delete Files="@(SetupWixobj)" />
+
+        <Copy SourceFiles=".\src\UKNCBTL.WiX\UkncBtl.msi"
+              DestinationFolder=".\build" />
+        <Copy SourceFiles=".\docs\README.txt"
+              DestinationFolder=".\build" />
+    </Target>
+
+    <Target Name="clean-setup">
+        <Delete Files="@(SetupWixobj)" />
+        <Delete Files="@(SetupMsi)" />
+    </Target>
+
+</Project>
