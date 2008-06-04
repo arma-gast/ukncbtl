@@ -1,3 +1,5 @@
+#summary Галерея снимков экрана.
+
 Эмулятор в работе:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-RealSpeed.png
