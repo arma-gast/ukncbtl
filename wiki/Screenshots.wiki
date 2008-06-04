@@ -28,3 +28,6 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov-01.png
 
+Игра Королевство Эйфория (KINGOM):
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNC_KINGOM.png
