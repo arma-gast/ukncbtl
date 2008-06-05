@@ -2,10 +2,10 @@
 //
 
 #include "stdafx.h"
+#include "rad50.h"
 
 
-void r50asc(int cnt, WORD* r50, TCHAR str[]);  // rad50.cpp
-void rtDateStr(WORD date, TCHAR* str);  // rad50.cpp
+//////////////////////////////////////////////////////////////////////
 
 
 /* Types for rtFileEntry 'status' */
@@ -19,7 +19,20 @@ void rtDateStr(WORD date, TCHAR* str);  // rad50.cpp
 #define NETRT11_IMAGE_HEADER_SIZE  256
 
 
-struct RT11CATALOGENTRY {
+//////////////////////////////////////////////////////////////////////
+
+
+// Структура для хранения информации о томе
+struct CVolumeInformation {
+    char volumeid[13];
+    char ownername[13];
+    char systemid[13];
+    WORD catalogsegmentcount;
+    WORD lastopenedsegment;
+};
+
+// Структура для хранения разобранной строки каталога
+struct CVolumeCatalogEntry {
     WORD status;  // See RT11_STATUS_xxx constants
     TCHAR name[7];  // File name - 6 characters
     TCHAR ext[4];   // File extension - 3 characters
@@ -28,6 +41,25 @@ struct RT11CATALOGENTRY {
     WORD length;    // File length in 512-byte blocks
 };
 
+
+//////////////////////////////////////////////////////////////////////
+// Предварительные объявления функций программы
+
+void PrintWelcome();
+BOOL ParseCommandLine(int argc, _TCHAR* argv[]);
+void PrintUsage();
+BOOL AttachImage();
+void DetachImage();
+void DecodeImageCatalog();
+void PrepareTrack(int nSide, int nTrack);
+BYTE* GetSector(int nSector);
+BYTE* GetBlock(int nBlock);
+void DoPrintCatalogDirectory();
+void DoExtractFile();
+
+
+//////////////////////////////////////////////////////////////////////
+// Глобальные переменные
 
 LPCTSTR g_sCommand = NULL;
 LPCTSTR g_sImageFileName = NULL;
@@ -38,22 +70,12 @@ HANDLE g_hFile = INVALID_HANDLE_VALUE;
 BYTE g_TrackData[RT11_TRACK_SIZE];
 int g_nCurrentSide = -1;
 int g_nCurrentTrack = -1;
-char g_sVolumeId[13];
-char g_sOwnerName[13];
-char g_sSystemId[13];
-RT11CATALOGENTRY* g_pCatalogEntries = NULL;
-WORD g_nCatalogSegmentCount = 0;
-WORD g_nLastOpenedSegment = 0;
+
+CVolumeInformation g_volumeinfo;
+CVolumeCatalogEntry* g_pCatalogEntries = NULL;
 
 
-void PrintWelcome();
-BOOL ParseCommandLine(int argc, _TCHAR* argv[]);
-void PrintUsage();
-void PrepareTrack(int nSide, int nTrack);
-BYTE* GetSector(int nSector);
-BYTE* GetBlock(int nBlock);
-void DoPrintCatalogDirectory();
-void DoExtractFile();
+//////////////////////////////////////////////////////////////////////
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -66,113 +88,12 @@ int _tmain(int argc, _TCHAR* argv[])
         return 255;
     }
 
-    // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
-    g_okNetRT11Image = FALSE;
-    LPCTSTR sImageFilenameExt = wcsrchr(g_sImageFileName, _T('.'));
-    if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
-        g_okNetRT11Image = TRUE;
-
-    g_hFile = ::CreateFile(g_sImageFileName,
-            GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (g_hFile == INVALID_HANDLE_VALUE)
-    {
-        wprintf(_T("Failed to open file."));
+    // Подключение к файлу образа
+    if (!AttachImage())
         return 255;
-    }
 
-    // Разбор Home Block
-    BYTE* pHomeSector = GetBlock(1);
-    WORD nFirstCatalogBlock = pHomeSector[0724];  // Это должен быть блок номер 6
-    if (nFirstCatalogBlock == 0) nFirstCatalogBlock = 6;
-    WORD nSystemVersion = pHomeSector[0726];
-    LPCSTR sVolumeId = (LPCSTR) pHomeSector + 0730;
-    strncpy_s(g_sVolumeId, 13, sVolumeId, 12);
-    LPCSTR sOwnerName = (LPCSTR) pHomeSector + 0744;
-    strncpy_s(g_sOwnerName, 13, sOwnerName, 12);
-    LPCSTR sSystemId = (LPCSTR) pHomeSector + 0760;
-    strncpy_s(g_sSystemId, 13, sSystemId, 12);
-
-    // Разбор первого блока каталога
-    WORD* pCatalogSector = (WORD*) GetBlock(nFirstCatalogBlock);
-    g_nCatalogSegmentCount = pCatalogSector[0];
-    g_nLastOpenedSegment = pCatalogSector[2];
-    WORD nExtraBytesLength = pCatalogSector[3];
-    WORD nExtraWordsLength = (nExtraBytesLength + 1) / 2;
-    WORD nEntryLength = 7 + nExtraWordsLength;  // Total catalog entry length, in words
-    WORD nEntriesPerSegment = (512 - 5) / nEntryLength;
-
-    // Allocate memory for catalog entry list
-    g_pCatalogEntries = (RT11CATALOGENTRY*) malloc(sizeof(RT11CATALOGENTRY) * nEntriesPerSegment * g_nCatalogSegmentCount);
-    memset(g_pCatalogEntries, 0, sizeof(RT11CATALOGENTRY) * nEntriesPerSegment * g_nCatalogSegmentCount);
-
-    //TODO: Для заголовка самого первого сегмента каталога существует правило:
-    //      если удвоить содержимое слова 1 и к результату прибавить начальный блок каталога (обычно 6),
-    //      то получиться содержимое слова 5. Таким образом RT-11 отличает свой каталог от чужого.
-
-    WORD nCatalogSegmentNumber = 1;
-    RT11CATALOGENTRY* pEntry = g_pCatalogEntries;
-
-    for (;;)
-    {
-        WORD nStartBlock = pCatalogSector[4];  // Номер блока, с которого начинаются файлы этого сегмента
-        //wprintf(_T("Segment %d start block: %d\n"), nCatalogSegmentNumber, nStartBlock);
-        WORD nNextSegment = pCatalogSector[1];
-        //wprintf(_T("Next segment:           %d\n"), nNextSegment);
-
-        WORD* pCatalog = pCatalogSector + 5;  // Начало описаний файлов
-        WORD nFileStartBlock = nStartBlock;
-        for (;;)  // Цикл по записям данного сегмента каталога
-        {
-            WORD status = pCatalog[0];
-
-            WORD namerad50[3];
-            namerad50[0] = pCatalog[1];
-            namerad50[1] = pCatalog[2];
-            namerad50[2] = pCatalog[3];
-            WORD length  = pCatalog[4];
-            WORD datepac = pCatalog[6];
-
-            if (status == RT11_STATUS_ENDMARK)
-                break;
-            if (status == RT11_STATUS_EMPTY)
-            {
-                pEntry->status = status;
-                pEntry->length = length;
-                pEntry->start = nFileStartBlock;
-
-                pEntry++;
-            }
-            else
-            {
-                pEntry->status = status;
-                pEntry->length = length;
-                pEntry->start = nFileStartBlock;
-                r50asc(6, namerad50, pEntry->name);
-                pEntry->name[6] = 0;
-                r50asc(3, namerad50 + 2, pEntry->ext);
-                pEntry->ext[3] = 0;
-
-                rtDateStr(datepac, pEntry->datestr);
-
-                pEntry++;
-            }
-
-            nFileStartBlock += length;
-            pCatalog += nEntryLength;
-            if (pCatalog - pCatalogSector > 256 * 2 - nEntryLength)  // Сегмент закончился
-                break;
-        }
-
-        if (nNextSegment == 0) break;  // Конец цепочки сегментов
-
-        // Переходим к следующему сегменту каталога
-        WORD nCatalogBlock = nFirstCatalogBlock + (nNextSegment - 1) * 2;
-        pCatalogSector = (WORD*) GetBlock(nCatalogBlock);
-        nCatalogSegmentNumber = nNextSegment;
-    }
-
-    pEntry->status = RT11_STATUS_ENDMARK;
+    // Разбор Home Block и чтение каталога диска
+    DecodeImageCatalog();
 
     // Main task
     if (g_sCommand[0] == _T('l'))
@@ -180,10 +101,8 @@ int _tmain(int argc, _TCHAR* argv[])
     else if (g_sCommand[0] == _T('e'))
         DoExtractFile();
 
-    // Finalize
-    ::CloseHandle(g_hFile);
-    g_hFile = INVALID_HANDLE_VALUE;
-    free(g_pCatalogEntries);
+    // Завершение работы с файлом
+    DetachImage();
 
     return 0;
 }
@@ -248,6 +167,139 @@ void PrintUsage()
     wprintf(_T("\n  <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
 }
 
+
+//////////////////////////////////////////////////////////////////////
+
+// Подготовка образа диска к работе - открытие файла итп.
+BOOL AttachImage()
+{
+    // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
+    g_okNetRT11Image = FALSE;
+    LPCTSTR sImageFilenameExt = wcsrchr(g_sImageFileName, _T('.'));
+    if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
+        g_okNetRT11Image = TRUE;
+
+    g_hFile = ::CreateFile(g_sImageFileName,
+            GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
+            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (g_hFile == INVALID_HANDLE_VALUE)
+    {
+        wprintf(_T("Failed to open file."));
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+// Завершение работы с образом диска - сохранение последних изменений, закрытие файла итп.
+void DetachImage()
+{
+    ::CloseHandle(g_hFile);
+    g_hFile = INVALID_HANDLE_VALUE;
+    free(g_pCatalogEntries);
+}
+
+// Разбор Home Block и чтение каталога диска.
+void DecodeImageCatalog()
+{
+    memset(&g_volumeinfo, 0, sizeof(g_volumeinfo));
+
+    // Разбор Home Block
+    BYTE* pHomeSector = GetBlock(1);
+    WORD nFirstCatalogBlock = pHomeSector[0724];  // Это должен быть блок номер 6
+    if (nFirstCatalogBlock == 0) nFirstCatalogBlock = 6;
+    WORD nSystemVersion = pHomeSector[0726];
+    LPCSTR sVolumeId = (LPCSTR) pHomeSector + 0730;
+    strncpy_s(g_volumeinfo.volumeid, 13, sVolumeId, 12);
+    LPCSTR sOwnerName = (LPCSTR) pHomeSector + 0744;
+    strncpy_s(g_volumeinfo.ownername, 13, sOwnerName, 12);
+    LPCSTR sSystemId = (LPCSTR) pHomeSector + 0760;
+    strncpy_s(g_volumeinfo.systemid, 13, sSystemId, 12);
+
+    // Разбор первого блока каталога
+    WORD* pCatalogSector = (WORD*) GetBlock(nFirstCatalogBlock);
+    g_volumeinfo.catalogsegmentcount = pCatalogSector[0];
+    g_volumeinfo.lastopenedsegment = pCatalogSector[2];
+    WORD nExtraBytesLength = pCatalogSector[3];
+    WORD nExtraWordsLength = (nExtraBytesLength + 1) / 2;
+    WORD nEntryLength = 7 + nExtraWordsLength;  // Total catalog entry length, in words
+    WORD nEntriesPerSegment = (512 - 5) / nEntryLength;
+
+    // Allocate memory for catalog entry list
+    g_pCatalogEntries = (CVolumeCatalogEntry*) malloc(
+        sizeof(CVolumeCatalogEntry) * nEntriesPerSegment * g_volumeinfo.catalogsegmentcount);
+    memset(g_pCatalogEntries, 0,
+        sizeof(CVolumeCatalogEntry) * nEntriesPerSegment * g_volumeinfo.catalogsegmentcount);
+
+    //TODO: Для заголовка самого первого сегмента каталога существует правило:
+    //      если удвоить содержимое слова 1 и к результату прибавить начальный блок каталога (обычно 6),
+    //      то получиться содержимое слова 5. Таким образом RT-11 отличает свой каталог от чужого.
+
+    WORD nCatalogSegmentNumber = 1;
+    CVolumeCatalogEntry* pEntry = g_pCatalogEntries;
+
+    for (;;)
+    {
+        WORD nStartBlock = pCatalogSector[4];  // Номер блока, с которого начинаются файлы этого сегмента
+        //wprintf(_T("Segment %d start block: %d\n"), nCatalogSegmentNumber, nStartBlock);
+        WORD nNextSegment = pCatalogSector[1];
+        //wprintf(_T("Next segment:           %d\n"), nNextSegment);
+
+        WORD* pCatalog = pCatalogSector + 5;  // Начало описаний файлов
+        WORD nFileStartBlock = nStartBlock;
+        for (;;)  // Цикл по записям данного сегмента каталога
+        {
+            WORD status = pCatalog[0];
+
+            WORD namerad50[3];
+            namerad50[0] = pCatalog[1];
+            namerad50[1] = pCatalog[2];
+            namerad50[2] = pCatalog[3];
+            WORD length  = pCatalog[4];
+            WORD datepac = pCatalog[6];
+
+            if (status == RT11_STATUS_ENDMARK)
+                break;
+            if (status == RT11_STATUS_EMPTY)
+            {
+                pEntry->status = status;
+                pEntry->length = length;
+                pEntry->start = nFileStartBlock;
+
+                pEntry++;
+            }
+            else
+            {
+                pEntry->status = status;
+                pEntry->length = length;
+                pEntry->start = nFileStartBlock;
+                r50asc(6, namerad50, pEntry->name);
+                pEntry->name[6] = 0;
+                r50asc(3, namerad50 + 2, pEntry->ext);
+                pEntry->ext[3] = 0;
+
+                rtDateStr(datepac, pEntry->datestr);
+
+                pEntry++;
+            }
+
+            nFileStartBlock += length;
+            pCatalog += nEntryLength;
+            if (pCatalog - pCatalogSector > 256 * 2 - nEntryLength)  // Сегмент закончился
+                break;
+        }
+
+        if (nNextSegment == 0) break;  // Конец цепочки сегментов
+
+        // Переходим к следующему сегменту каталога
+        WORD nCatalogBlock = nFirstCatalogBlock + (nNextSegment - 1) * 2;
+        pCatalogSector = (WORD*) GetBlock(nCatalogBlock);
+        nCatalogSegmentNumber = nNextSegment;
+    }
+
+    pEntry->status = RT11_STATUS_ENDMARK;
+}
+
 // nSide = 0..1
 // nTrack = 0..79
 void PrepareTrack(int nSide, int nTrack)
@@ -274,6 +326,7 @@ BYTE* GetSector(int nSector)
     return g_TrackData + (nSector - 1) * RT11_BLOCK_SIZE;
 }
 
+// Переход к заданному блоку файла образа диска. Если нужно, выполняется чтение другой дорожки.
 // Каждый блок - 256 слов, 512 байт
 // Каждый track = 10 блоков
 // nBlock = 1..???
@@ -289,14 +342,14 @@ BYTE* GetBlock(int nBlock)
     return GetSector(nSector);
 }
 
-
+// Печать всего каталога диска
 void DoPrintCatalogDirectory()
 {
-    wprintf(_T(" Volume: %S\n"), g_sVolumeId);
-    wprintf(_T(" Owner:  %S\n"), g_sOwnerName);
-    wprintf(_T(" System: %S\n"), g_sSystemId);
+    wprintf(_T(" Volume: %S\n"), g_volumeinfo.volumeid);
+    wprintf(_T(" Owner:  %S\n"), g_volumeinfo.ownername);
+    wprintf(_T(" System: %S\n"), g_volumeinfo.systemid);
     wprintf(_T("\n"));
-    wprintf(_T(" %d available segments, last opened segment: %d\n"), g_nCatalogSegmentCount, g_nLastOpenedSegment);
+    wprintf(_T(" %d available segments, last opened segment: %d\n"), g_volumeinfo.catalogsegmentcount, g_volumeinfo.lastopenedsegment);
     wprintf(_T("\n"));
     wprintf(_T(" Filename  Blocks  Date      Start    Bytes\n"));
     wprintf(_T("---------- ------  --------- ----- --------\n"));
@@ -304,7 +357,7 @@ void DoPrintCatalogDirectory()
     WORD nFilesCount = 0;
     WORD nBlocksCount = 0;
     WORD nFreeBlocksCount = 0;
-    RT11CATALOGENTRY* pEntry = g_pCatalogEntries;
+    CVolumeCatalogEntry* pEntry = g_pCatalogEntries;
 
     while (pEntry->status != RT11_STATUS_ENDMARK)
     {
@@ -331,6 +384,7 @@ void DoPrintCatalogDirectory()
     wprintf(_T("\n"));
 }
 
+// Извлечение файла из образа в отдельный файл.
 void DoExtractFile()
 {
     // Parse g_sFileName
@@ -362,7 +416,7 @@ void DoExtractFile()
     fileext[3] = 0;
 
     // Search for the filename/fileext
-    RT11CATALOGENTRY* pEntry = g_pCatalogEntries;
+    CVolumeCatalogEntry* pEntry = g_pCatalogEntries;
     while (pEntry->status != RT11_STATUS_ENDMARK)
     {
         if (_wcsnicmp(filename, pEntry->name, 6) == 0 &&
@@ -403,3 +457,5 @@ void DoExtractFile()
     wprintf(_T("\nDone.\n"));
 }
 
+
+//////////////////////////////////////////////////////////////////////
