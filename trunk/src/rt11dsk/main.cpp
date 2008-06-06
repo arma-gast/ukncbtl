@@ -2,33 +2,29 @@
 //
 
 #include "stdafx.h"
+#include "diskimage.h"
 #include "rad50.h"
 
 
 //////////////////////////////////////////////////////////////////////
+// Структуры данных, представляющие информацию о томе RT-11
 
-
-/* Types for rtFileEntry 'status' */
-#define RT11_STATUS_TENTATIVE   256     /* Temporary file */
-#define RT11_STATUS_EMPTY       512     /* Marks empty space */
-#define RT11_STATUS_PERM        1024    /* A "real" file */
-#define RT11_STATUS_ENDMARK     2048    /* Marks the end of file entries */
-/* Size of each RT-11 disk block, 512 or 0x200 bytes */
-#define RT11_BLOCK_SIZE         512
-#define RT11_TRACK_SIZE         5120
-#define NETRT11_IMAGE_HEADER_SIZE  256
-
-
-//////////////////////////////////////////////////////////////////////
-
+struct CVolumeCatalogEntry;
 
 // Структура для хранения информации о томе
 struct CVolumeInformation {
     char volumeid[13];
     char ownername[13];
     char systemid[13];
+    WORD firstcatalogblock;
+    WORD systemversion;
+    WORD catalogextrawords;
+    WORD catalogentriespersegment;
     WORD catalogsegmentcount;
     WORD lastopenedsegment;
+    // Массив записей каталога, размером в максимально возможное кол-во записей для этого кол-ва сегментов каталога
+    CVolumeCatalogEntry* catalogentries;
+    WORD catalogentriescount;  // Количество валидных записей каталога, включая завершающую ENDMARK
 };
 
 // Структура для хранения разобранной строки каталога
@@ -48,14 +44,12 @@ struct CVolumeCatalogEntry {
 void PrintWelcome();
 BOOL ParseCommandLine(int argc, _TCHAR* argv[]);
 void PrintUsage();
-BOOL AttachImage();
-void DetachImage();
 void DecodeImageCatalog();
+void FreeImageCatalog();
 void PrepareTrack(int nSide, int nTrack);
-BYTE* GetSector(int nSector);
-BYTE* GetBlock(int nBlock);
 void DoPrintCatalogDirectory();
 void DoExtractFile();
+BOOL DoAddFile();
 
 
 //////////////////////////////////////////////////////////////////////
@@ -65,14 +59,9 @@ LPCTSTR g_sCommand = NULL;
 LPCTSTR g_sImageFileName = NULL;
 LPCTSTR g_sFileName = NULL;
 
-BOOL g_okNetRT11Image = FALSE;
-HANDLE g_hFile = INVALID_HANDLE_VALUE;
-BYTE g_TrackData[RT11_TRACK_SIZE];
-int g_nCurrentSide = -1;
-int g_nCurrentTrack = -1;
+CDiskImage g_diskimage;
 
 CVolumeInformation g_volumeinfo;
-CVolumeCatalogEntry* g_pCatalogEntries = NULL;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -89,7 +78,7 @@ int _tmain(int argc, _TCHAR* argv[])
     }
 
     // Подключение к файлу образа
-    if (!AttachImage())
+    if (!g_diskimage.Attach(g_sImageFileName))
         return 255;
 
     // Разбор Home Block и чтение каталога диска
@@ -100,9 +89,15 @@ int _tmain(int argc, _TCHAR* argv[])
         DoPrintCatalogDirectory();
     else if (g_sCommand[0] == _T('e'))
         DoExtractFile();
+    else if (g_sCommand[0] == _T('a'))
+    {
+        DoPrintCatalogDirectory();  //DEBUG
+        DoAddFile();
+    }
 
     // Завершение работы с файлом
-    DetachImage();
+    FreeImageCatalog();
+    g_diskimage.Detach();
 
     return 0;
 }
@@ -145,7 +140,7 @@ BOOL ParseCommandLine(int argc, _TCHAR* argv[])
         wprintf(_T("Command not specified.\n"));
         return FALSE;
     }
-    if (g_sCommand[0] != _T('l') && g_sCommand[0] != _T('e'))
+    if (g_sCommand[0] != _T('l') && g_sCommand[0] != _T('e') && g_sCommand[0] != _T('a'))
     {
         wprintf(_T("Unknown command: %s.\n"), g_sCommand);
         return FALSE;
@@ -164,40 +159,12 @@ void PrintUsage()
     wprintf(_T("\n"));
     wprintf(_T("Usage:  rt11dsk l <ImageFile>  - list image contents\n"));
     wprintf(_T("Usage:  rt11dsk e <ImageFile> <FileName>  - extract file\n"));
+    wprintf(_T("Usage:  rt11dsk a <ImageFile> <FileName>  - add file\n"));
     wprintf(_T("\n  <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
 }
 
 
 //////////////////////////////////////////////////////////////////////
-
-// Подготовка образа диска к работе - открытие файла итп.
-BOOL AttachImage()
-{
-    // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
-    g_okNetRT11Image = FALSE;
-    LPCTSTR sImageFilenameExt = wcsrchr(g_sImageFileName, _T('.'));
-    if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
-        g_okNetRT11Image = TRUE;
-
-    g_hFile = ::CreateFile(g_sImageFileName,
-            GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (g_hFile == INVALID_HANDLE_VALUE)
-    {
-        wprintf(_T("Failed to open file."));
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-// Завершение работы с образом диска - сохранение последних изменений, закрытие файла итп.
-void DetachImage()
-{
-    ::CloseHandle(g_hFile);
-    g_hFile = INVALID_HANDLE_VALUE;
-    free(g_pCatalogEntries);
-}
 
 // Разбор Home Block и чтение каталога диска.
 void DecodeImageCatalog()
@@ -205,10 +172,11 @@ void DecodeImageCatalog()
     memset(&g_volumeinfo, 0, sizeof(g_volumeinfo));
 
     // Разбор Home Block
-    BYTE* pHomeSector = GetBlock(1);
+    BYTE* pHomeSector = g_diskimage.GetBlock(1);
     WORD nFirstCatalogBlock = pHomeSector[0724];  // Это должен быть блок номер 6
     if (nFirstCatalogBlock == 0) nFirstCatalogBlock = 6;
-    WORD nSystemVersion = pHomeSector[0726];
+    g_volumeinfo.firstcatalogblock = nFirstCatalogBlock;
+    g_volumeinfo.systemversion = pHomeSector[0726];
     LPCSTR sVolumeId = (LPCSTR) pHomeSector + 0730;
     strncpy_s(g_volumeinfo.volumeid, 13, sVolumeId, 12);
     LPCSTR sOwnerName = (LPCSTR) pHomeSector + 0744;
@@ -217,26 +185,29 @@ void DecodeImageCatalog()
     strncpy_s(g_volumeinfo.systemid, 13, sSystemId, 12);
 
     // Разбор первого блока каталога
-    WORD* pCatalogSector = (WORD*) GetBlock(nFirstCatalogBlock);
+    WORD* pCatalogSector = (WORD*) g_diskimage.GetBlock(nFirstCatalogBlock);
     g_volumeinfo.catalogsegmentcount = pCatalogSector[0];
     g_volumeinfo.lastopenedsegment = pCatalogSector[2];
     WORD nExtraBytesLength = pCatalogSector[3];
     WORD nExtraWordsLength = (nExtraBytesLength + 1) / 2;
+    g_volumeinfo.catalogextrawords = nExtraWordsLength;
     WORD nEntryLength = 7 + nExtraWordsLength;  // Total catalog entry length, in words
     WORD nEntriesPerSegment = (512 - 5) / nEntryLength;
+    g_volumeinfo.catalogentriespersegment = nEntriesPerSegment;
 
     // Allocate memory for catalog entry list
-    g_pCatalogEntries = (CVolumeCatalogEntry*) malloc(
+    g_volumeinfo.catalogentries = (CVolumeCatalogEntry*) malloc(
         sizeof(CVolumeCatalogEntry) * nEntriesPerSegment * g_volumeinfo.catalogsegmentcount);
-    memset(g_pCatalogEntries, 0,
+    memset(g_volumeinfo.catalogentries, 0,
         sizeof(CVolumeCatalogEntry) * nEntriesPerSegment * g_volumeinfo.catalogsegmentcount);
 
     //TODO: Для заголовка самого первого сегмента каталога существует правило:
     //      если удвоить содержимое слова 1 и к результату прибавить начальный блок каталога (обычно 6),
     //      то получиться содержимое слова 5. Таким образом RT-11 отличает свой каталог от чужого.
 
+    WORD nCatalogEntriesCount = 0;
     WORD nCatalogSegmentNumber = 1;
-    CVolumeCatalogEntry* pEntry = g_pCatalogEntries;
+    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
 
     for (;;)
     {
@@ -249,8 +220,9 @@ void DecodeImageCatalog()
         WORD nFileStartBlock = nStartBlock;
         for (;;)  // Цикл по записям данного сегмента каталога
         {
-            WORD status = pCatalog[0];
+            nCatalogEntriesCount++;
 
+            WORD status = pCatalog[0];
             WORD namerad50[3];
             namerad50[0] = pCatalog[1];
             namerad50[1] = pCatalog[2];
@@ -293,53 +265,17 @@ void DecodeImageCatalog()
 
         // Переходим к следующему сегменту каталога
         WORD nCatalogBlock = nFirstCatalogBlock + (nNextSegment - 1) * 2;
-        pCatalogSector = (WORD*) GetBlock(nCatalogBlock);
+        pCatalogSector = (WORD*) g_diskimage.GetBlock(nCatalogBlock);
         nCatalogSegmentNumber = nNextSegment;
     }
 
     pEntry->status = RT11_STATUS_ENDMARK;
+    g_volumeinfo.catalogentriescount = nCatalogEntriesCount;
 }
 
-// nSide = 0..1
-// nTrack = 0..79
-void PrepareTrack(int nSide, int nTrack)
+void FreeImageCatalog()
 {
-    if (g_nCurrentSide == nSide && g_nCurrentTrack == nTrack)
-        return;  // Повторного чтения не требуется
-
-    memset(g_TrackData, 0, RT11_TRACK_SIZE);
-
-    long foffset = long(nTrack * 2 + nSide) * RT11_TRACK_SIZE;  // File offset to read from
-    if (g_okNetRT11Image) foffset += NETRT11_IMAGE_HEADER_SIZE;
-    ::SetFilePointer(g_hFile, foffset, NULL, FILE_BEGIN);
-
-    DWORD count;
-    ::ReadFile(g_hFile, g_TrackData, RT11_TRACK_SIZE, &count, NULL);
-
-    g_nCurrentSide = nSide;
-    g_nCurrentTrack = nTrack;
-}
-
-// nSector = 1..10
-BYTE* GetSector(int nSector)
-{
-    return g_TrackData + (nSector - 1) * RT11_BLOCK_SIZE;
-}
-
-// Переход к заданному блоку файла образа диска. Если нужно, выполняется чтение другой дорожки.
-// Каждый блок - 256 слов, 512 байт
-// Каждый track = 10 блоков
-// nBlock = 1..???
-BYTE* GetBlock(int nBlock)
-{
-    int nTrackAndSide = nBlock / 10;
-    int nSector = nBlock % 10 + 1;
-    int nTrack = nTrackAndSide / 2;
-    int nSide = nTrackAndSide % 2;
-
-    PrepareTrack(nSide, nTrack);
-
-    return GetSector(nSector);
+    free(g_volumeinfo.catalogentries);
 }
 
 // Печать всего каталога диска
@@ -357,7 +293,7 @@ void DoPrintCatalogDirectory()
     WORD nFilesCount = 0;
     WORD nBlocksCount = 0;
     WORD nFreeBlocksCount = 0;
-    CVolumeCatalogEntry* pEntry = g_pCatalogEntries;
+    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
 
     while (pEntry->status != RT11_STATUS_ENDMARK)
     {
@@ -416,7 +352,7 @@ void DoExtractFile()
     fileext[3] = 0;
 
     // Search for the filename/fileext
-    CVolumeCatalogEntry* pEntry = g_pCatalogEntries;
+    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
     while (pEntry->status != RT11_STATUS_ENDMARK)
     {
         if (_wcsnicmp(filename, pEntry->name, 6) == 0 &&
@@ -447,7 +383,7 @@ void DoExtractFile()
 
     for (WORD blockpos = 0; blockpos < filelength; blockpos++)
     {
-        BYTE* pData = GetBlock(filestart + blockpos);
+        BYTE* pData = g_diskimage.GetBlock(filestart + blockpos);
         size_t nBytesWritten = fwrite(pData, sizeof(BYTE), RT11_BLOCK_SIZE, foutput);
         //TODO: Check if nBytesWritten < RT11_BLOCK_SIZE
     }
@@ -455,6 +391,121 @@ void DoExtractFile()
     fclose(foutput);
 
     wprintf(_T("\nDone.\n"));
+}
+
+// Помещение файла в образ.
+// Алгоритм:
+//   Помещаемый файл считывается в память
+//   Перебираются все записи каталога, пока не будет найдена пустая запись большей или равной длины
+//   Если нужно, в конце каталога создается новая пустая запись
+//   В файл образа прописывается измененная запись каталога
+//   Если нужно, в файл образа прописывается новая пустая запись каталога
+//   В файл образа прописываются блоки нового файла
+//NOTE: Пока НЕ обрабатываем ситуацию открытия нового блока каталога - выходим по ошибке
+//NOTE: Пока НЕ проверяем что файл с таким именем уже есть, и НЕ выдаем ошибки
+BOOL DoAddFile()
+{
+    // Открываем помещаемый файл на чтение
+    HANDLE hFile = ::CreateFile(g_sFileName,
+            GENERIC_READ, FILE_SHARE_READ, NULL,
+            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        wprintf(_T("Failed to open file."));
+        return FALSE;
+    }
+
+    // Определяем длину файла, с учетом округления до полного блока
+    DWORD dwFileLength = ::GetFileSize(hFile, NULL);  // Точная длина файла
+    WORD nFileSizeBlocks =  // Требуемая ширина свободного места в блоках
+        (WORD) (dwFileLength + RT11_BLOCK_SIZE - 1) / RT11_BLOCK_SIZE;
+    DWORD dwFileSize =  // Длина файла с учетом округления до полного блока
+        ((DWORD) nFileSizeBlocks) * RT11_BLOCK_SIZE;
+    //TODO: Проверка на файл нулевой длины
+    //TODO: Проверка, не слишком ли длинный файл для этого тома
+
+    // Выделяем память и считываем данные файла
+    PVOID pFileData = malloc(dwFileSize);
+    memset(pFileData, 0, dwFileSize);
+    DWORD dwBytesRead;
+    ::ReadFile(hFile, pFileData, dwFileLength, &dwBytesRead, NULL);
+    //TODO: Проверка на ошибки чтения
+    ::CloseHandle(hFile);
+
+    wprintf(_T("File size is %ld bytes or %d blocks\n"), dwFileLength, nFileSizeBlocks);
+
+    // Перебираются все записи каталога, пока не будет найдена пустая запись длины >= dwFileLength
+    //TODO: Выделить в отдельную функцию и искать наиболее подходящую запись, с минимальной разницей по длине
+    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
+    while (pEntry->status != RT11_STATUS_ENDMARK)
+    {
+        if (pEntry->status == RT11_STATUS_EMPTY && pEntry->length >= nFileSizeBlocks)
+            break;
+        pEntry++;
+    }
+    if (pEntry->status == RT11_STATUS_ENDMARK)
+    {
+        wprintf(_T("Empty catalog entry with %d or more blocks not found\n"), nFileSizeBlocks);
+        free(pFileData);
+        return FALSE;
+    }
+    wprintf(_T("Found < UNUSED > catalog entry with %d blocks\n"), pEntry->length);
+
+    // Определяем, нужна ли новая запись каталога
+    BOOL okNeedNewCatalogEntry = (pEntry->length != nFileSizeBlocks);
+    CVolumeCatalogEntry* pNewEntry = NULL;
+    CVolumeCatalogEntry* pNewEndmarkEntry = NULL;
+    if (okNeedNewCatalogEntry)
+    {
+        // Проверяем, нужно ли для новой записи каталога открывать новый блок каталога
+        if (g_volumeinfo.catalogentriescount % g_volumeinfo.catalogentriespersegment == 0)
+        {
+            wprintf(_T("We have to open new catalog segment - not implemented now, sorry.\n"));
+            free(pFileData);
+            return FALSE;
+        }
+
+        // Определяем, в какие записи каталога мы должны прописать новую пустую запись и новую ENDMARK
+        pNewEntry = g_volumeinfo.catalogentries + g_volumeinfo.catalogentriescount - 1;
+        pNewEndmarkEntry = pNewEntry + 1;
+        // Заполнить данные новой записи каталога
+        pNewEntry->status = RT11_STATUS_EMPTY;
+        pNewEntry->start = pEntry->start + nFileSizeBlocks;
+        pNewEntry->length = pEntry->length - nFileSizeBlocks;
+        //TODO: pNewEntry->datestr = 
+        // Заполнить данные новой ENDMARK
+        pNewEndmarkEntry->status = RT11_STATUS_ENDMARK;
+    }
+
+    // Изменяем существующую запись каталога
+    pEntry->length = nFileSizeBlocks;
+    //TODO: pEntry->name = 
+    //TODO: pEntry->ext = 
+    //TODO: pEntry->datestr = 
+    pEntry->status = RT11_STATUS_PERM;
+
+    // Сохраняем новый файл поблочно
+    WORD nFileStartBlock = pEntry->start;  // Начиная с какого блока размещается новый файл
+    WORD nBlock = nFileStartBlock;
+    for (int block = 0; block < nFileSizeBlocks; block++)
+    {
+        BYTE* pFileBlockData = ((BYTE*) pFileData) + block * RT11_BLOCK_SIZE;
+        BYTE* pData = g_diskimage.GetBlock(nBlock);
+        memcpy(pData, pFileBlockData, RT11_BLOCK_SIZE);
+
+        //TODO: Сообщить что блок был изменен
+        
+        nBlock++;
+    }
+    free(pFileData);
+
+    if (okNeedNewCatalogEntry)
+    {
+        //TODO: Сохраняем новую запись каталога
+        //TODO: Сохраняем новую ENDMARK
+    }
+
+    return TRUE;
 }
 
 
