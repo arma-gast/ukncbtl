@@ -17,7 +17,7 @@
 
 
 //////////////////////////////////////////////////////////////////////
-
+// Образ диска в формате .dsk либо .rtd
 
 class CDiskImage
 {
@@ -27,6 +27,7 @@ protected:
     BYTE    m_TrackData[RT11_TRACK_SIZE];
     int     m_nCurrentSide;
     int     m_nCurrentTrack;
+    BOOL    m_okTrackChanged;
 
 public:
     CDiskImage();
@@ -35,9 +36,16 @@ public:
 public:
     BOOL Attach(LPCTSTR sFileName);
     void Detach();
-    void PrepareTrack(int nSide, int nTrack);
+
+public:
     BYTE* GetSector(int nSector);
     BYTE* GetBlock(int nBlock);
+    void MarkTrackChanged() { m_okTrackChanged = TRUE; }
+    void FlushChanges();
+
+protected:
+    void PrepareTrack(int nSide, int nTrack);
+
 };
 
 
