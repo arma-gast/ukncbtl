@@ -89,9 +89,9 @@ void r50asc(int cnt, WORD* r50, TCHAR str[])
 }
 
 /* number of chars to pack */ /* input string */ /* array of words to fill from char */
-void irad50( int cnt, char str[], unsigned int r50[] )
+void irad50( int cnt, TCHAR str[], WORD r50[] )
 {
-    unsigned int v;
+    unsigned int v = 0;
     int i;
     /* sorry I think in decimal, 39 = Octal 47, 
                         decimal, 40 = Octal 50
@@ -99,13 +99,13 @@ void irad50( int cnt, char str[], unsigned int r50[] )
     for(i=0;i<cnt;i++)
     {
 
-         if(str[i] == ' ')                       v=0; /* space */
-         else if(str[i] >= 'A' && 
-                 str[i] <= 'Z')  v = str[i] - 'A' +1; /* printable */
-         else if( str[i] == '$')   v = 27;
-         else if( str[i] == '.')   v = 28;
-         else if(str[i] >= '0' && 
-                 str[i] <= '9')  v = str[i] - '0' +30; /* digit */
+         if(str[i] == _T(' '))                       v=0; /* space */
+         else if(str[i] >= _T('A') && 
+                 str[i] <= _T('Z'))  v = str[i] - _T('A') +1; /* printable */
+         else if( str[i] == _T('$'))   v = 27;
+         else if( str[i] == _T('.'))   v = 28;
+         else if(str[i] >= _T('0') && 
+                 str[i] <= _T('9'))  v = str[i] - _T('0') +30; /* digit */
          /* end of valid RAD50 range, display table values */
 
          if((i % 3) == 0)

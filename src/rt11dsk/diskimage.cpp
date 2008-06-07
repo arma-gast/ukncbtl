@@ -38,8 +38,13 @@ BOOL CDiskImage::Attach(LPCTSTR sImageFileName)
 
 void CDiskImage::Detach()
 {
-    ::CloseHandle(m_hFile);
-    m_hFile = INVALID_HANDLE_VALUE;
+    if (m_hFile != INVALID_HANDLE_VALUE)
+    {
+        FlushChanges();
+
+        ::CloseHandle(m_hFile);
+        m_hFile = INVALID_HANDLE_VALUE;
+    }
 }
 
 // nSide = 0..1
@@ -61,6 +66,25 @@ void CDiskImage::PrepareTrack(int nSide, int nTrack)
 
     m_nCurrentSide = nSide;
     m_nCurrentTrack = nTrack;
+    m_okTrackChanged = FALSE;
+}
+
+void CDiskImage::FlushChanges()
+{
+    if (!m_okTrackChanged) return;
+
+    // Вычисляем смещение в файле образа - начало дорожки
+    long foffset = long(m_nCurrentTrack * 2 + m_nCurrentSide) * RT11_TRACK_SIZE;
+    if (m_okNetRT11Image) foffset += NETRT11_IMAGE_HEADER_SIZE;
+    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
+
+    // Записываем дорожку
+    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
+    DWORD dwBytesWritten;
+    ::WriteFile(m_hFile, &m_TrackData, RT11_TRACK_SIZE, &dwBytesWritten, NULL);
+    //TODO: Проверка на ошибки записи
+
+    m_okTrackChanged = FALSE;
 }
 
 // Получение указателя на начало заданного сектора текущей дорожки

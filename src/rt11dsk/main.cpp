@@ -10,32 +10,118 @@
 // Структуры данных, представляющие информацию о томе RT-11
 
 struct CVolumeCatalogEntry;
+struct CVolumeCatalogSegment;
 
 // Структура для хранения информации о томе
-struct CVolumeInformation {
+struct CVolumeInformation
+{
     char volumeid[13];
     char ownername[13];
     char systemid[13];
     WORD firstcatalogblock;
     WORD systemversion;
     WORD catalogextrawords;
+    WORD catalogentrylength;
     WORD catalogentriespersegment;
     WORD catalogsegmentcount;
     WORD lastopenedsegment;
-    // Массив записей каталога, размером в максимально возможное кол-во записей для этого кол-ва сегментов каталога
-    CVolumeCatalogEntry* catalogentries;
+    // Массив сегментов
+    CVolumeCatalogSegment* catalogsegments;
     WORD catalogentriescount;  // Количество валидных записей каталога, включая завершающую ENDMARK
 };
 
+// Структура данных для сегмента каталога
+struct CVolumeCatalogSegment
+{
+public:
+    WORD segmentblock;  // Блок на диске, в котором расположен этот сегмент каталога
+    WORD entriesused;   // Количество использованых записей каталога
+public:
+    WORD nextsegment;   // Номер следующего сегмента
+    WORD start;         // Номер блока, с которого начинаются файлы этого сегмента
+    // Массив записей каталога, размером в максимально возможное кол-во записей для этого сегмента
+    CVolumeCatalogEntry* catalogentries;
+};
+
 // Структура для хранения разобранной строки каталога
-struct CVolumeCatalogEntry {
-    WORD status;  // See RT11_STATUS_xxx constants
-    TCHAR name[7];  // File name - 6 characters
-    TCHAR ext[4];   // File extension - 3 characters
-    TCHAR datestr[10];
+struct CVolumeCatalogEntry
+{
+public:  // Упакованные поля записи
+    WORD status;    // See RT11_STATUS_xxx constants
+    WORD datepac;   // Упакованное поле даты
     WORD start;     // File start block number
     WORD length;    // File length in 512-byte blocks
+public:  // Распакованные поля записи
+    TCHAR name[7];  // File name - 6 characters
+    TCHAR ext[4];   // File extension - 3 characters
+
+public:
+    CVolumeCatalogEntry();
+    void Unpack(WORD const * pSrc, WORD filestartblock);  // Распаковка записи из каталога
+    void Pack(WORD* pDest);   // Упаковка записи в каталог
+    void Print();  // Печать строки каталога на консоль
 };
+
+CVolumeCatalogEntry::CVolumeCatalogEntry()
+{
+    status = 0;
+    memset(name, 0, sizeof(name));
+    memset(ext, 0, sizeof(ext));
+    start = length = 0;
+}
+
+void CVolumeCatalogEntry::Unpack(WORD const * pCatalog, WORD filestartblock)
+{
+    start = filestartblock;
+    status = pCatalog[0];
+    WORD namerad50[3];
+    namerad50[0] = pCatalog[1];
+    namerad50[1] = pCatalog[2];
+    namerad50[2] = pCatalog[3];
+    length  = pCatalog[4];
+    datepac = pCatalog[6];
+
+    if (status != RT11_STATUS_EMPTY && status != RT11_STATUS_ENDMARK)
+    {
+        r50asc(6, namerad50, name);
+        name[6] = 0;
+        r50asc(3, namerad50 + 2, ext);
+        ext[3] = 0;
+    }
+}
+
+void CVolumeCatalogEntry::Pack(WORD* pCatalog)
+{
+    pCatalog[0] = status;
+    if (status == RT11_STATUS_EMPTY || status == RT11_STATUS_ENDMARK)
+    {
+        memset(pCatalog + 1, 0, sizeof(WORD) * 3);
+    }
+    else
+    {
+        WORD namerad50[3];
+        irad50(6, name, namerad50);
+        irad50(3, ext,  namerad50 + 2);
+        memcpy(pCatalog + 1, namerad50, sizeof(namerad50));
+    }
+    pCatalog[4] = length;
+    pCatalog[5] = 0;  // Used only for tentative files
+    pCatalog[6] = datepac;
+}
+
+void CVolumeCatalogEntry::Print()
+{
+    if (status == RT11_STATUS_EMPTY)
+        wprintf(_T("< UNUSED >  %5d            %5d %8d\n"),
+                length, start, length * RT11_BLOCK_SIZE);
+    else
+    {
+        TCHAR datestr[10];
+        rtDateStr(datepac, datestr);
+        wprintf(_T("%s.%s  %5d  %s %5d %8d\n"),
+                name, ext, length, datestr, start, length * RT11_BLOCK_SIZE);
+    }
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -44,12 +130,15 @@ struct CVolumeCatalogEntry {
 void PrintWelcome();
 BOOL ParseCommandLine(int argc, _TCHAR* argv[]);
 void PrintUsage();
+void PrintTableHeader();
+void PrintTableFooter();
 void DecodeImageCatalog();
 void FreeImageCatalog();
 void PrepareTrack(int nSide, int nTrack);
 void DoPrintCatalogDirectory();
 void DoExtractFile();
 BOOL DoAddFile();
+void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -90,10 +179,7 @@ int _tmain(int argc, _TCHAR* argv[])
     else if (g_sCommand[0] == _T('e'))
         DoExtractFile();
     else if (g_sCommand[0] == _T('a'))
-    {
-        DoPrintCatalogDirectory();  //DEBUG
         DoAddFile();
-    }
 
     // Завершение работы с файлом
     FreeImageCatalog();
@@ -163,6 +249,16 @@ void PrintUsage()
     wprintf(_T("\n  <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
 }
 
+static void PrintTableHeader()
+{
+    wprintf(_T(" Filename  Blocks  Date      Start    Bytes\n"));
+    wprintf(_T("---------- ------  --------- ----- --------\n"));
+}
+static void PrintTableFooter()
+{
+    wprintf(_T("---------- ------  --------- ----- --------\n"));
+}
+
 
 //////////////////////////////////////////////////////////////////////
 
@@ -192,14 +288,15 @@ void DecodeImageCatalog()
     WORD nExtraWordsLength = (nExtraBytesLength + 1) / 2;
     g_volumeinfo.catalogextrawords = nExtraWordsLength;
     WORD nEntryLength = 7 + nExtraWordsLength;  // Total catalog entry length, in words
+    g_volumeinfo.catalogentrylength = nEntryLength;
     WORD nEntriesPerSegment = (512 - 5) / nEntryLength;
     g_volumeinfo.catalogentriespersegment = nEntriesPerSegment;
 
-    // Allocate memory for catalog entry list
-    g_volumeinfo.catalogentries = (CVolumeCatalogEntry*) malloc(
-        sizeof(CVolumeCatalogEntry) * nEntriesPerSegment * g_volumeinfo.catalogsegmentcount);
-    memset(g_volumeinfo.catalogentries, 0,
-        sizeof(CVolumeCatalogEntry) * nEntriesPerSegment * g_volumeinfo.catalogsegmentcount);
+    // Получаем память под список сегментов
+    g_volumeinfo.catalogsegments = (CVolumeCatalogSegment*) malloc(
+        sizeof(CVolumeCatalogSegment) * g_volumeinfo.catalogsegmentcount);
+    memset(g_volumeinfo.catalogsegments, 0,
+        sizeof(CVolumeCatalogSegment) * g_volumeinfo.catalogsegmentcount);
 
     //TODO: Для заголовка самого первого сегмента каталога существует правило:
     //      если удвоить содержимое слова 1 и к результату прибавить начальный блок каталога (обычно 6),
@@ -207,75 +304,61 @@ void DecodeImageCatalog()
 
     WORD nCatalogEntriesCount = 0;
     WORD nCatalogSegmentNumber = 1;
-    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
+    CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments;
 
+    WORD nCatalogBlock = nFirstCatalogBlock;
     for (;;)
     {
-        WORD nStartBlock = pCatalogSector[4];  // Номер блока, с которого начинаются файлы этого сегмента
-        //wprintf(_T("Segment %d start block: %d\n"), nCatalogSegmentNumber, nStartBlock);
-        WORD nNextSegment = pCatalogSector[1];
-        //wprintf(_T("Next segment:           %d\n"), nNextSegment);
+        pSegment->segmentblock = nCatalogBlock;
 
+        WORD nStartBlock = pCatalogSector[4];  // Номер блока, с которого начинаются файлы этого сегмента
+        pSegment->start = pCatalogSector[4];
+        //wprintf(_T("Segment %d start block: %d\n"), nCatalogSegmentNumber, nStartBlock);
+        pSegment->nextsegment = pCatalogSector[1];
+        //wprintf(_T("Next segment:           %d\n"), pSegment->nextsegment);
+
+        // Выделяем память под записи сегмента
+        pSegment->catalogentries = (CVolumeCatalogEntry*) malloc(
+            sizeof(CVolumeCatalogEntry) * nEntriesPerSegment);
+        memset(pSegment->catalogentries, 0,
+            sizeof(CVolumeCatalogEntry) * nEntriesPerSegment);
+
+        CVolumeCatalogEntry* pEntry = pSegment->catalogentries;
         WORD* pCatalog = pCatalogSector + 5;  // Начало описаний файлов
         WORD nFileStartBlock = nStartBlock;
+        WORD entriesused = 0;
         for (;;)  // Цикл по записям данного сегмента каталога
         {
             nCatalogEntriesCount++;
 
-            WORD status = pCatalog[0];
-            WORD namerad50[3];
-            namerad50[0] = pCatalog[1];
-            namerad50[1] = pCatalog[2];
-            namerad50[2] = pCatalog[3];
-            WORD length  = pCatalog[4];
-            WORD datepac = pCatalog[6];
+            pEntry->Unpack(pCatalog, nFileStartBlock);
 
-            if (status == RT11_STATUS_ENDMARK)
+            if (pEntry->status == RT11_STATUS_ENDMARK)
                 break;
-            if (status == RT11_STATUS_EMPTY)
-            {
-                pEntry->status = status;
-                pEntry->length = length;
-                pEntry->start = nFileStartBlock;
 
-                pEntry++;
-            }
-            else
-            {
-                pEntry->status = status;
-                pEntry->length = length;
-                pEntry->start = nFileStartBlock;
-                r50asc(6, namerad50, pEntry->name);
-                pEntry->name[6] = 0;
-                r50asc(3, namerad50 + 2, pEntry->ext);
-                pEntry->ext[3] = 0;
-
-                rtDateStr(datepac, pEntry->datestr);
-
-                pEntry++;
-            }
-
-            nFileStartBlock += length;
+            nFileStartBlock += pEntry->length;
+            pEntry++;
             pCatalog += nEntryLength;
             if (pCatalog - pCatalogSector > 256 * 2 - nEntryLength)  // Сегмент закончился
                 break;
         }
+        pSegment->entriesused = entriesused;
 
-        if (nNextSegment == 0) break;  // Конец цепочки сегментов
+        if (pSegment->nextsegment == 0) break;  // Конец цепочки сегментов
 
         // Переходим к следующему сегменту каталога
-        WORD nCatalogBlock = nFirstCatalogBlock + (nNextSegment - 1) * 2;
+        nCatalogBlock = nFirstCatalogBlock + (pSegment->nextsegment - 1) * 2;
         pCatalogSector = (WORD*) g_diskimage.GetBlock(nCatalogBlock);
-        nCatalogSegmentNumber = nNextSegment;
+        nCatalogSegmentNumber = pSegment->nextsegment;
+        pSegment++;
     }
 
-    pEntry->status = RT11_STATUS_ENDMARK;
     g_volumeinfo.catalogentriescount = nCatalogEntriesCount;
 }
 
 void FreeImageCatalog()
 {
-    free(g_volumeinfo.catalogentries);
+    free(g_volumeinfo.catalogsegments);
 }
 
 // Печать всего каталога диска
@@ -287,37 +370,36 @@ void DoPrintCatalogDirectory()
     wprintf(_T("\n"));
     wprintf(_T(" %d available segments, last opened segment: %d\n"), g_volumeinfo.catalogsegmentcount, g_volumeinfo.lastopenedsegment);
     wprintf(_T("\n"));
-    wprintf(_T(" Filename  Blocks  Date      Start    Bytes\n"));
-    wprintf(_T("---------- ------  --------- ----- --------\n"));
+    PrintTableHeader();
 
     WORD nFilesCount = 0;
     WORD nBlocksCount = 0;
     WORD nFreeBlocksCount = 0;
-    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
-
-    while (pEntry->status != RT11_STATUS_ENDMARK)
+    for (int segmno = 0; segmno < g_volumeinfo.catalogsegmentcount; segmno++)
     {
-        if (pEntry->status == RT11_STATUS_EMPTY)
+        CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments + segmno;
+        if (pSegment->catalogentries == NULL) continue;
+        
+        for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
         {
-            wprintf(_T("< UNUSED >  %5d            %5d %8d\n"),
-                    pEntry->length, pEntry->start, pEntry->length * RT11_BLOCK_SIZE);
-            nFreeBlocksCount += pEntry->length;
-        }
-        else
-        {
-            wprintf(_T("%s.%s  %5d  %s %5d %8d\n"),
-                    pEntry->name, pEntry->ext, pEntry->length, pEntry->datestr, pEntry->start, pEntry->length * RT11_BLOCK_SIZE);
-            nFilesCount++;
-            nBlocksCount += pEntry->length;
-        }
+            CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
 
-        pEntry++;
+            if (pEntry->status == RT11_STATUS_ENDMARK) break;
+            if (pEntry->status == 0) continue;
+            pEntry->Print();
+            if (pEntry->status == RT11_STATUS_EMPTY)
+                nFreeBlocksCount += pEntry->length;
+            else
+            {
+                nFilesCount++;
+                nBlocksCount += pEntry->length;
+            }
+        }
     }
 
-    wprintf(_T("---------- ------  --------- ----- --------\n"));
+    PrintTableFooter();
     wprintf(_T(" %d files, %d blocks\n"), nFilesCount, nBlocksCount);
-    wprintf(_T(" %d free blocks\n"), nFreeBlocksCount);
-    wprintf(_T("\n"));
+    wprintf(_T(" %d free blocks\n\n"), nFreeBlocksCount);
 }
 
 // Извлечение файла из образа в отдельный файл.
@@ -352,26 +434,40 @@ void DoExtractFile()
     fileext[3] = 0;
 
     // Search for the filename/fileext
-    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
-    while (pEntry->status != RT11_STATUS_ENDMARK)
+    CVolumeCatalogEntry* pFileEntry = NULL;
+    for (int segmno = 0; segmno < g_volumeinfo.catalogsegmentcount; segmno++)
     {
-        if (_wcsnicmp(filename, pEntry->name, 6) == 0 &&
-            _wcsnicmp(fileext, pEntry->ext, 3) == 0)
-            break;
-        pEntry++;
+        CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments + segmno;
+        if (pSegment->catalogentries == NULL) continue;
+        
+        for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+        {
+            CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
+
+            if (pEntry->status == RT11_STATUS_ENDMARK) break;
+            if (pEntry->status == 0) continue;
+            if (pEntry->status == RT11_STATUS_EMPTY) continue;
+
+            if (_wcsnicmp(filename, pEntry->name, 6) == 0 &&
+                _wcsnicmp(fileext, pEntry->ext, 3) == 0)
+            {
+                pFileEntry = pEntry;
+                break;
+            }
+        }
     }
-    if (pEntry->status == RT11_STATUS_ENDMARK)
+    if (pFileEntry == NULL)
     {
         wprintf(_T("Filename not found: %s\n"), g_sFileName);
         return;
     }
     wprintf(_T("Extracting file:\n\n"));
-    wprintf(_T(" Filename  Blocks  Date      Start    Bytes\n\n"));
-    wprintf(_T("%s.%s  %5d  %s %5d %8d\n"),
-            pEntry->name, pEntry->ext, pEntry->length, pEntry->datestr, pEntry->start, pEntry->length * RT11_BLOCK_SIZE);
+    PrintTableHeader();
+    pFileEntry->Print();
+    PrintTableFooter();
 
-    WORD filestart = pEntry->start;
-    WORD filelength = pEntry->length;
+    WORD filestart = pFileEntry->start;
+    WORD filelength = pFileEntry->length;
 
     FILE* foutput = NULL;
     errno_t err = _wfopen_s(&foutput, g_sFileName, _T("wb"));
@@ -436,76 +532,121 @@ BOOL DoAddFile()
 
     // Перебираются все записи каталога, пока не будет найдена пустая запись длины >= dwFileLength
     //TODO: Выделить в отдельную функцию и искать наиболее подходящую запись, с минимальной разницей по длине
-    CVolumeCatalogEntry* pEntry = g_volumeinfo.catalogentries;
-    while (pEntry->status != RT11_STATUS_ENDMARK)
+    CVolumeCatalogEntry* pFileEntry = NULL;
+    CVolumeCatalogSegment* pFileSegment = NULL;
+    for (int segmno = 0; segmno < g_volumeinfo.catalogsegmentcount; segmno++)
     {
-        if (pEntry->status == RT11_STATUS_EMPTY && pEntry->length >= nFileSizeBlocks)
-            break;
-        pEntry++;
+        CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments + segmno;
+        if (pSegment->catalogentries == NULL) continue;
+        
+        for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+        {
+            CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
+
+            if (pEntry->status == RT11_STATUS_ENDMARK) break;
+            if (pEntry->status == 0) continue;
+
+            if (pEntry->status == RT11_STATUS_EMPTY && pEntry->length >= nFileSizeBlocks)
+            {
+                pFileEntry = pEntry;
+                pFileSegment = pSegment;
+                break;
+            }
+        }
     }
-    if (pEntry->status == RT11_STATUS_ENDMARK)
+    if (pFileEntry == NULL)
     {
         wprintf(_T("Empty catalog entry with %d or more blocks not found\n"), nFileSizeBlocks);
         free(pFileData);
         return FALSE;
     }
-    wprintf(_T("Found < UNUSED > catalog entry with %d blocks\n"), pEntry->length);
+    wprintf(_T("Found empty catalog entry with %d blocks:\n\n"), pFileEntry->length);
+    PrintTableHeader();
+    pFileEntry->Print();
+    PrintTableFooter();
 
     // Определяем, нужна ли новая запись каталога
-    BOOL okNeedNewCatalogEntry = (pEntry->length != nFileSizeBlocks);
-    CVolumeCatalogEntry* pNewEntry = NULL;
-    CVolumeCatalogEntry* pNewEndmarkEntry = NULL;
+    BOOL okNeedNewCatalogEntry = (pFileEntry->length != nFileSizeBlocks);
+    CVolumeCatalogEntry* pEmptyEntry = NULL;
     if (okNeedNewCatalogEntry)
     {
-        // Проверяем, нужно ли для новой записи каталога открывать новый блок каталога
-        if (g_volumeinfo.catalogentriescount % g_volumeinfo.catalogentriespersegment == 0)
+        // Проверяем, нужно ли для новой записи каталога открывать новый сегмент каталога
+        if (pFileSegment->entriesused == g_volumeinfo.catalogentriespersegment)
         {
-            wprintf(_T("We have to open new catalog segment - not implemented now, sorry.\n"));
+            wprintf(_T("New catalog segment needed - not implemented now, sorry.\n"));
             free(pFileData);
             return FALSE;
         }
 
-        // Определяем, в какие записи каталога мы должны прописать новую пустую запись и новую ENDMARK
-        pNewEntry = g_volumeinfo.catalogentries + g_volumeinfo.catalogentriescount - 1;
-        pNewEndmarkEntry = pNewEntry + 1;
+        // Сдвигаем записи сегмента начиная с пустой на одну вправо - освобождаем место под новую запись
+        int fileentryindex = (int) (pFileEntry - pFileSegment->catalogentries);
+        int totalentries = g_volumeinfo.catalogentriespersegment;
+        memmove(pFileEntry + 1, pFileEntry, (totalentries - fileentryindex - 1) * sizeof(CVolumeCatalogEntry));
+
+        // Новая пустая запись каталога
+        pEmptyEntry = pFileEntry + 1;
         // Заполнить данные новой записи каталога
-        pNewEntry->status = RT11_STATUS_EMPTY;
-        pNewEntry->start = pEntry->start + nFileSizeBlocks;
-        pNewEntry->length = pEntry->length - nFileSizeBlocks;
-        //TODO: pNewEntry->datestr = 
-        // Заполнить данные новой ENDMARK
-        pNewEndmarkEntry->status = RT11_STATUS_ENDMARK;
+        pEmptyEntry->status = RT11_STATUS_EMPTY;
+        pEmptyEntry->start = pFileEntry->start + nFileSizeBlocks;
+        pEmptyEntry->length = pFileEntry->length - nFileSizeBlocks;
+        pEmptyEntry->datepac = pFileEntry->datepac;
     }
 
     // Изменяем существующую запись каталога
-    pEntry->length = nFileSizeBlocks;
-    //TODO: pEntry->name = 
-    //TODO: pEntry->ext = 
-    //TODO: pEntry->datestr = 
-    pEntry->status = RT11_STATUS_PERM;
+    pFileEntry->length = nFileSizeBlocks;
+    wcscpy_s(pFileEntry->name, 7, _T("TEST  "));  //TODO
+    wcscpy_s(pFileEntry->ext, 4, _T("EXT"));  //TODO
+    pFileEntry->datepac = 0;
+    pFileEntry->status = RT11_STATUS_PERM;
+
+    wprintf(_T("\nUpdated catalog entries:\n\n"));
+    PrintTableHeader();
+    pFileEntry->Print();
+    if (pEmptyEntry != NULL) pEmptyEntry->Print();
+    PrintTableFooter();
 
     // Сохраняем новый файл поблочно
-    WORD nFileStartBlock = pEntry->start;  // Начиная с какого блока размещается новый файл
+    wprintf(_T("\nWriting file data...\n"));
+    WORD nFileStartBlock = pFileEntry->start;  // Начиная с какого блока размещается новый файл
     WORD nBlock = nFileStartBlock;
     for (int block = 0; block < nFileSizeBlocks; block++)
     {
         BYTE* pFileBlockData = ((BYTE*) pFileData) + block * RT11_BLOCK_SIZE;
         BYTE* pData = g_diskimage.GetBlock(nBlock);
         memcpy(pData, pFileBlockData, RT11_BLOCK_SIZE);
-
-        //TODO: Сообщить что блок был изменен
+        // Сообщаем что блок был изменен
+        g_diskimage.MarkTrackChanged();
         
         nBlock++;
     }
     free(pFileData);
 
-    if (okNeedNewCatalogEntry)
-    {
-        //TODO: Сохраняем новую запись каталога
-        //TODO: Сохраняем новую ENDMARK
-    }
+    // Сохраняем сегмент каталога на диск
+    wprintf(_T("Updating catalog segment...\n"));
+    UpdateCatalogSegment(pFileSegment);
+
+    g_diskimage.FlushChanges();
+
+    wprintf(_T("\nDone.\n"));
 
     return TRUE;
+}
+
+void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
+{
+    WORD* pData = (WORD*) g_diskimage.GetBlock(pSegment->segmentblock);
+
+    pData += 5;  // Пропускаем заголовок сегмента
+    for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+    {
+        CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
+
+        pEntry->Pack(pData);
+
+        pData += g_volumeinfo.catalogentrylength;
+    }
+
+    g_diskimage.MarkTrackChanged();
 }
 
 

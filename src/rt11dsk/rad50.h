@@ -4,6 +4,7 @@
 
 
 void r50asc(int cnt, WORD* r50, TCHAR str[]);
+void irad50(int cnt, TCHAR str[], WORD r50[]);
 void rtDateStr(WORD date, TCHAR* str);
 
 
