@@ -501,6 +501,36 @@ void DoExtractFile()
 //NOTE: Пока НЕ проверяем что файл с таким именем уже есть, и НЕ выдаем ошибки
 BOOL DoAddFile()
 {
+    // Parse g_sFileName
+    LPCTSTR sFilenameExt = wcsrchr(g_sFileName, _T('.'));
+    if (sFilenameExt == NULL)
+    {
+        wprintf(_T("Wrong filename format: %s\n"), g_sFileName);
+        return FALSE;
+    }
+    size_t nFilenameLength = sFilenameExt - g_sFileName;
+    if (nFilenameLength == 0 || nFilenameLength > 6)
+    {
+        wprintf(_T("Wrong filename format: %s\n"), g_sFileName);
+        return FALSE;
+    }
+    size_t nFileextLength = wcslen(g_sFileName) - nFilenameLength - 1;
+    if (nFileextLength == 0 || nFileextLength > 3)
+    {
+        wprintf(_T("Wrong filename format: %s\n"), g_sFileName);
+        return FALSE;
+    }
+    TCHAR filename[7];
+    for (int i = 0; i < 6; i++) filename[i] = _T(' ');
+    for (WORD i = 0; i < nFilenameLength; i++) filename[i] = g_sFileName[i];
+    filename[6] = 0;
+    _wcsupr_s(filename, 7);
+    TCHAR fileext[4];
+    for (int i = 0; i < 3; i++) fileext[i] = _T(' ');
+    for (WORD i = 0; i < nFileextLength; i++) fileext[i] = sFilenameExt[i + 1];
+    fileext[3] = 0;
+    _wcsupr_s(fileext, 4);
+
     // Открываем помещаемый файл на чтение
     HANDLE hFile = ::CreateFile(g_sFileName,
             GENERIC_READ, FILE_SHARE_READ, NULL,
@@ -594,12 +624,12 @@ BOOL DoAddFile()
 
     // Изменяем существующую запись каталога
     pFileEntry->length = nFileSizeBlocks;
-    wcscpy_s(pFileEntry->name, 7, _T("TEST  "));  //TODO
-    wcscpy_s(pFileEntry->ext, 4, _T("EXT"));  //TODO
+    wcscpy_s(pFileEntry->name, 7, filename);
+    wcscpy_s(pFileEntry->ext, 4, fileext);
     pFileEntry->datepac = 0;
     pFileEntry->status = RT11_STATUS_PERM;
 
-    wprintf(_T("\nUpdated catalog entries:\n\n"));
+    wprintf(_T("\nCatalog entries to update:\n\n"));
     PrintTableHeader();
     pFileEntry->Print();
     if (pEmptyEntry != NULL) pEmptyEntry->Print();
