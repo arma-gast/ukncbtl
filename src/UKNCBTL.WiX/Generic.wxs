@@ -96,8 +96,8 @@
                     <Shortcut Id="shortcut1" Name="UKNCBACK" LongName="UKNC Back to Life" WorkingDirectory="INSTALLDIR" Directory="ProgramMenuDir" />
                 </File>
                 <File Id="main2" Name="UKNC_ROM.BIN" LongName="uknc_rom.bin" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\uknc_rom.bin" />
-                <File Id="main3" Name="MSVCR80.DLL" LongName="msvcr80.dll" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\msvcr80.dll" />
-                <File Id="main4" Name="MSVCR80.MAN" LongName="Microsoft.VC80.CRT.manifest" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\Microsoft.VC80.CRT.manifest" />
+                <File Id="main3" Name="MSVCR90.DLL" LongName="msvcr90.dll" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\msvcr90.dll" />
+                <File Id="main4" Name="MSVCR90.MAN" LongName="Microsoft.VC90.CRT.manifest" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\Microsoft.VC90.CRT.manifest" />
                 <File Id="main5" Name="RT11DSK.EXE" LongName="rt11dsk.exe" Checksum="yes" Compressed="yes" Vital="yes" src="$(var.BinariesSource)\rt11dsk.exe" />
             </Component>
         </DirectoryRef>
