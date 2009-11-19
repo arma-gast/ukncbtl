@@ -46,4 +46,12 @@
  * СБРОС = Insert
 
 == Литература, ссылки ==
+Литература:
 *TODO*
+
+Ссылки:
+ * Страница проекта UKNCBTL: [http://code.google.com/p/ukncbtl/]
+ * УКНЦ в Википедии: [http://ru.wikipedia.org/wiki/УКНЦ]
+ * UKNC в Wikipedia: [http://en.wikipedia.org/wiki/UKNC]
+ * УКНЦ & PDP-11 -- страница Арсения Гордина: [http://uknc.narod.ru/]
+ * PDP-11.ORG.RU: [http://pdp-11.org.ru/]
