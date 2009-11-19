@@ -58,7 +58,8 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Started.png
 
 *TODO*: как запустить программы с незагрузочного диска
 
-*TODO*: что почитать чтобы разобраться
+Операционная система, используемая вместе с УКНЦ -- это RT-11 либо её советские клоны (ФОДОС, РАФОС). Поэтому, для более глубокого знакомства с работой на УКНЦ имеет смысл изучать руководства по работе в RT-11, в частности, [http://www.az-libr.ru/Persons/0GN/fe16506c/Books/000/Toc.shtml «RT-11, Step by Step» А.Г.Архангельского].
+См. также список литературы и ссылки в Приложении.
 
 *TODO*: где можно получить помощь
 
@@ -112,11 +113,12 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Started.png
  * СТОП = Pause/Break, дублировано на PageUp
  * СБРОС = Insert
 
-== Литература, ссылки ==
-Литература:
-*TODO*
+== Литература ==
+ * Архангельский Андрей Германович. «RT-11, Step by Step». — Москва, 1989. [http://www.az-libr.ru/Persons/0GN/fe16506c/Books/000/Toc.shtml]
+ * Л. И. Валикова, Г. В. Вигдорчик, А. Ю. Воробьев, А. А. Лукин. «Операционная система СМ ЭВМ РАФОС. Справочник». — М.: Финансы и статистика, 1984. — 207 с.
+ * [http://www.bitsavers.org/pdf/dec/pdp11/rt11/ Документация на DEC RT-11 (PDF), англ.]
 
-Ссылки:
+== Ссылки ==
  * Страница проекта UKNCBTL: [http://code.google.com/p/ukncbtl/]
  * УКНЦ в Википедии: [http://ru.wikipedia.org/wiki/УКНЦ]
  * UKNC в Wikipedia: [http://en.wikipedia.org/wiki/UKNC]
