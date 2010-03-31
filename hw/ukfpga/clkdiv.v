@@ -42,12 +42,12 @@ module clkdiv(
 		countps<=countps+1;
 		countled<=countled+1;
 		
-		if(count6==4166666)
+		if(count6==8)
 		begin
 			count6<=0;
 			clk6o<=!clk6o;
 		end		
-		if(count8==3125000)
+		if(count8==6)
 		begin
 			count8<=0;
 			clk8o<=!clk8o;
