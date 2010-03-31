@@ -11,7 +11,6 @@
         <signal name="an(3:0)" />
         <signal name="clk" />
         <signal name="XLXN_24" />
-        <signal name="XLXN_25" />
         <signal name="XLXN_27(7:0)" />
         <signal name="RsRx" />
         <signal name="RsTx" />
@@ -21,29 +20,15 @@
         <signal name="MemOE" />
         <signal name="MemDB(15:0)" />
         <signal name="XLXN_44(15:0)" />
-        <signal name="XLXN_45(15:0)" />
         <signal name="btn0" />
-        <signal name="XLXN_50" />
         <signal name="FlashRp" />
-        <signal name="XLXN_51" />
         <signal name="RamCS" />
-        <signal name="XLXN_55" />
         <signal name="FlashCS" />
-        <signal name="XLXN_60" />
-        <signal name="XLXN_61" />
-        <signal name="XLXN_62" />
-        <signal name="XLXN_63" />
         <signal name="btn1" />
         <signal name="btn2" />
-        <signal name="XLXN_68" />
-        <signal name="XLXN_69" />
         <signal name="Led0" />
-        <signal name="XLXN_71" />
-        <signal name="XLXN_73" />
-        <signal name="XLXN_74" />
         <signal name="XLXN_77" />
         <signal name="XLXN_79" />
-        <signal name="XLXN_80" />
         <port polarity="Output" name="dp" />
         <port polarity="Output" name="seg(6:0)" />
         <port polarity="Output" name="an(3:0)" />
@@ -207,6 +192,10 @@
             <blockpin signalname="MemOE" name="I" />
             <blockpin signalname="FlashCS" name="O" />
         </block>
+        <block symbolname="buf" name="XLXI_46">
+            <blockpin signalname="XLXN_79" name="I" />
+            <blockpin signalname="Led0" name="O" />
+        </block>
     </netlist>
     <sheet sheetnum="1" width="3520" height="2720">
         <branch name="dp">
@@ -318,7 +307,11 @@
         <branch name="XLXN_79">
             <wire x2="416" y1="1296" y2="1296" x1="336" />
             <wire x2="336" y1="1296" y2="1392" x1="336" />
-            <wire x2="912" y1="1392" y2="1392" x1="336" />
+            <wire x2="720" y1="1392" y2="1392" x1="336" />
+            <wire x2="728" y1="1392" y2="1392" x1="720" />
+            <wire x2="912" y1="1392" y2="1392" x1="728" />
+            <wire x2="720" y1="1392" y2="1472" x1="720" />
+            <wire x2="736" y1="1472" y2="1472" x1="720" />
             <wire x2="912" y1="816" y2="816" x1="800" />
             <wire x2="912" y1="816" y2="1392" x1="912" />
         </branch>
@@ -346,10 +339,10 @@
             <wire x2="368" y1="688" y2="688" x1="320" />
             <wire x2="416" y1="688" y2="688" x1="368" />
             <wire x2="368" y1="688" y2="1616" x1="368" />
-            <wire x2="384" y1="1616" y2="1616" x1="368" />
-            <wire x2="1296" y1="1616" y2="1616" x1="384" />
+            <wire x2="1296" y1="1616" y2="1616" x1="368" />
             <wire x2="320" y1="688" y2="688" x1="272" />
         </branch>
+        <instance x="736" y="1504" name="XLXI_46" orien="R0" />
         <branch name="MemOE">
             <wire x2="256" y1="1552" y2="1904" x1="256" />
             <wire x2="336" y1="1904" y2="1904" x1="256" />
