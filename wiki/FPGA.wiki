@@ -1,0 +1,13 @@
+#summary Attempt to emulate MS 0511 on FPGA.
+#labels Phase-Design
+
+= УКНЦ на FPGA =
+
+Проект в зародыше. Пытаюсь сделать максимально близкую растактовку к реальному железу.
+Ключевые моменты:
+  * FPGA - Spartan 3E 500
+  * плата разработки - [http://digilentinc.com/Products/Detail.cfm?NavPath=2,400,789&Prod=NEXYS2 NEXYS2]
+  * клавиатура PS/2
+  * дисплей VGA (в будующем синтез PAL/NTSC на выходе)
+  * SDCard вместо флопика и винта.
+
