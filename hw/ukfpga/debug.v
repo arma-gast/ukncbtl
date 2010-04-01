@@ -29,99 +29,48 @@ module debug(
     );
 
 	reg [1:0] count;
-	reg [3:0] digo;
-	reg [6:0] sego;
-	reg doto;
-	reg [3:0] ano;
+	wire [3:0] digo;
+	wire [6:0] sego;
+	wire doto;
+	wire [3:0] ano;
+	
 	
 	always @(posedge clk)
-	begin
-		if(count==2'h0)
-			begin
-				digo<=data0[3:0];
-				doto<=data1[0];				
-				ano=4'h8;
-			end
-		else
-		if(count==2'h1)
-			begin
-				digo<=data0[7:4];
-				doto<=data1[1];				
-				ano=4'h1;
-			end
-		else
-		if(count==2'h2)
-			begin
-				digo<=data0[11:8];
-				doto<=data1[2];				
-				ano=4'h2;
-			end
-		else
-		if(count==2'h3)
-			begin
-				digo<=data0[15:12];
-				doto<=data1[3];				
-				ano=4'h4;
-			end
-		//count<=count+1;
-	end
-	
-	always @(negedge clk)
-		count<=count+1;
-	
-	always @(posedge clk)
-	begin
-		
-		if(digo==4'h0)
-			sego<=7'h3f;
-		else
-		if(digo==4'h1)
-			sego<=7'h06;
-		else
-		if(digo==4'h2)
-			sego<=7'h5b;
-		else
-		if(digo==4'h3)
-			sego<=7'h4f;
-		else
-		if(digo==4'h4)
-			sego<=7'h66;
-		else
-		if(digo==4'h5)
-			sego<=7'h6d;
-		else
-		if(digo==4'h6)
-			sego<=7'h7d;
-		else
-		if(digo==4'h7)
-			sego<=7'h07;
-		else
-		if(digo==4'h8)
-			sego<=7'h7f;
-		else
-		if(digo==4'h9)
-			sego<=7'h6f;
-		else
-		if(digo==4'ha)
-			sego<=7'h77;
-		else
-		if(digo==4'hb)
-			sego<=7'h7c;
-		else
-		if(digo==4'hc)
-			sego<=7'h39;
-		else
-		if(digo==4'hd)
-			sego<=7'h5e;
-		else
-		if(digo==4'he)
-			sego<=7'h79;
-		else
-		if(digo==4'hf)
-			sego<=7'h71;
+			count<=count+1;
 			
-	end
+	assign digo=(count==2'h0)?data0[3:0]:
+					(count==2'h1)?data0[7:4]:
+					(count==2'h2)?data0[11:8]:
+					data0[15:12];
+					
+	assign doto=(count==2'h0)?data1[0]:
+					(count==2'h1)?data1[1]:
+					(count==2'h2)?data1[2]:
+					data1[3];
+
+	assign ano=(count==2'h0)?4'h1:
+					(count==2'h1)?4'h2:
+					(count==2'h2)?4'h4:
+					4'h8;
+
 		
+	assign sego=(digo==4'h0)?7'h3f:
+					(digo==4'h1)?7'h06:
+					(digo==4'h2)?7'h5b:
+					(digo==4'h3)?7'h4f:
+					(digo==4'h4)?7'h66:
+					(digo==4'h5)?7'h6d:
+					(digo==4'h6)?7'h7d:
+					(digo==4'h7)?7'h07:
+					(digo==4'h8)?7'h7f:
+					(digo==4'h9)?7'h6f:
+					(digo==4'ha)?7'h77:
+					(digo==4'hb)?7'h7c:
+					(digo==4'hc)?7'h39:
+					(digo==4'hd)?7'h5e:
+					(digo==4'he)?7'h79:
+					7'h71;
+			
 	assign dot=!doto;
 	assign seg[0]=!sego[0];
 	assign seg[1]=!sego[1];

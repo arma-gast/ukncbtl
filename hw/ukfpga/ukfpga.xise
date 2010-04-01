@@ -50,9 +50,14 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
+    <file xil_pn:name="memmux.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="Implementation"/>
+      <association xil_pn:name="BehavioralSimulation"/>
+    </file>
   </files>
 
   <properties>
+    <property xil_pn:name="Auto Implementation Top" xil_pn:value="false"/>
     <property xil_pn:name="Constraints Entry" xil_pn:value="Constraints Editor"/>
     <property xil_pn:name="Device" xil_pn:value="xc3s500e"/>
     <property xil_pn:name="Device Family" xil_pn:value="Spartan3E"/>
@@ -70,7 +75,9 @@
     <property xil_pn:name="Verbose Property Persistence" xil_pn:value="false"/>
   </properties>
 
-  <bindings/>
+  <bindings>
+    <binding xil_pn:location="/top" xil_pn:name="Nexys2_500General.ucf"/>
+  </bindings>
 
   <libraries/>
 
