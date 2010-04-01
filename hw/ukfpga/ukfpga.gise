@@ -20,6 +20,7 @@
   <version xmlns="http://www.xilinx.com/XMLSchema">11.1</version>
 
   <files xmlns="http://www.xilinx.com/XMLSchema">
+    <file xil_pn:fileType="FILE_LSO" xil_pn:name=".lso"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="Rs232RefComp.sym" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="clkdiv.sym" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="cpuvm2.sym" xil_pn:origination="imported"/>
@@ -27,9 +28,13 @@
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="debug.sym" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="debugen.sym" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="memmux.sym" xil_pn:origination="imported"/>
+    <file xil_pn:fileType="FILE_XST_PROJECT" xil_pn:name="ppu-memctr.prj"/>
+    <file xil_pn:fileType="FILE_XST_STX" xil_pn:name="ppu-memctr.stx"/>
+    <file xil_pn:fileType="FILE_XST" xil_pn:name="ppu-memctr.xst"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="ppu.sym" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_SYMBOL" xil_pn:name="ppumemctr.sym" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_NCD" xil_pn:name="top_guide.ncd" xil_pn:origination="imported"/>
+    <file xil_pn:fileType="FILE_DIRECTORY" xil_pn:name="xst"/>
   </files>
 
   <transforms xmlns="http://www.xilinx.com/XMLSchema"/>

@@ -20,28 +20,28 @@
 //////////////////////////////////////////////////////////////////////////////////
 module cpuvm2(
     input clk,  			//
-    input virq,			// векторное прерывание
-    input evnt,			// таймерное прерывание
-    input halt,			// пульт
-    input aclo,			// авария AC
-    input dclo,			// авария DC
-    input ar,				// адрес принят
-    input dmr,				// запрос на ПДП
-    input sack,			// подверждение ПДП
-    input rply,			// Ответ ВУ
-    input sel,			// системная память (пультовая)
+    input virq,			//  
+    input evnt,			//  
+    input halt,			// 
+    input aclo,			//  AC
+    input dclo,			//  DC
+    input ar,				//  
+    input dmr,				//   
+    input sack,			//  
+    input rply,			//  
+    input sel,			//   ()
 	 
-    output dmgo,			// Разрешаю ПДП
-    output iako,			// Разрешаю прерывания
-    output init,			// сброс ВУ
-    output sync,			// Синхронизация обмена
-    output din,			// читаем ВУ
-    output dout,			// пишем ВУ
-    output wtbt,			// запись-байт
+    output dmgo,			//  
+    output iako,			//  
+    output init,			//  
+    output sync,			//  
+    output din,			//  
+    output dout,			//  
+    output wtbt,			// -
 
     inout [15:0] ad,		
 	 
-	 //отладка :)
+	 // :)
 	 
 	 input dbgclk,
 	 output [6:0] seg,
@@ -53,7 +53,7 @@ module cpuvm2(
 	 
     );
 	 
-	 //FSM процессора
+	 //FSM 
 	// f1  posedge(ad=addr,sync=1)
 	// f2  posedge(ad=z, sync=0)   negedge(din=0)
 	// f3  posedge(if rply==0 f4)  negedge(latch db)
@@ -62,13 +62,13 @@ module cpuvm2(
 	
    // c1 decode;
    //
-   // s1 source1;	адрес + sync
+   // s1 source1;	 + sync
    // s2 source2;	!sync + din
-   // s3 source3;	читаем
+   // s3 source3;	
    // s4 source4;	!din
    //
-   // d1 dest1;	адрес + sync
-   // d2 dest2;	!sync + пишем
+   // d1 dest1;	 + sync
+   // d2 dest2;	!sync + 
    // d3 dest3;	dout
    // d4 dest4;	!dout
    //
@@ -91,7 +91,7 @@ module cpuvm2(
    // minimum states/instructions = 3
    // maximum states/instructions = 12
    //
-   // режим,символ,	ea1	ea2		ea3			данные			побочный эффект
+   // ,,	ea1	ea2		ea3						 
    // 
    // 0		R			x		x			x				R					x
    // 1		(R)		R		x			x				M[R]				x
@@ -191,8 +191,8 @@ module cpuvm2(
 	parameter	s9 = 8'h29;
 
 	
-	wire [7:0] new_istate; //новое состояние
-	reg [7:0] istate;     //текущее состояние
+	wire [7:0] new_istate; // 
+	reg [7:0] istate;     // 
 	
 	reg [15:0] gpr[7:0];
 	wire [15:0] pc;
@@ -201,7 +201,7 @@ module cpuvm2(
 	reg [15:0] spc; 	
 	reg [15:0] spsw;
 		
-	wire [15:0] pc_mux;  //мультиплексор для следующего PC
+	wire [15:0] pc_mux;  //   PC
 	
 	wire cc_n,cc_z,cc_v,cc_c;
 	wire cc_halt,cc_p,cc_t;
@@ -247,22 +247,22 @@ module cpuvm2(
 	wire need_dd_byte;
 	wire need_dd;
 	
-	reg [15:0] ss_data; //результат циклов S
-	reg [15:0] dd_data; //результат циклов D
-	reg [15:0] e1_data; //результат циклов выполнения -- младшее слово
-	reg [15:0] e1_datah;//результат циклов выполнения -- старшее слово
+	reg [15:0] ss_data; //  S
+	reg [15:0] dd_data; //  D
+	reg [15:0] e1_data; //   --  
+	reg [15:0] e1_datah;//   --  
 	
-	wire [15:0] ss_data_mux; //мультиплексор S
-	wire [15:0] dd_data_mux; //мультиплексор D
-	wire [15:0] e1_result;   //мультиплексор результата
-	wire [15:0] e1_resulth;	 //мультиплексор результата (старшее слово)
+	wire [15:0] ss_data_mux; // S
+	wire [15:0] dd_data_mux; // D
+	wire [15:0] e1_result;   // 
+	wire [15:0] e1_resulth;	 //  ( )
 	
 	
 	wire trap;
 	wire irq;
 	wire oddpc;
 	
-	//отладка
+	//
 	wire [15:0] debugdata0;
 	wire [3:0]  debugdata1;
 	
@@ -270,11 +270,13 @@ module cpuvm2(
 	
 	wire [3:0] dbtn;
 	
-	debounce bnc0( .clk(clk), .insig(btn[0]), .outsig(dbtn[0]));
-	debounce bnc1( .clk(clk), .insig(btn[1]), .outsig(dbtn[1]));
-	debounce bnc2( .clk(clk), .insig(btn[2]), .outsig(dbtn[2]));
-	debounce bnc3( .clk(clk), .insig(btn[3]), .outsig(dbtn[3]));
-				
+	debounce bnc0( .clk(dbgclk), .insig(btn[0]), .outsig(dbtn[0]));
+	debounce bnc1( .clk(dbgclk), .insig(btn[1]), .outsig(dbtn[1]));
+	debounce bnc2( .clk(dbgclk), .insig(btn[2]), .outsig(dbtn[2]));
+	debounce bnc3( .clk(dbgclk), .insig(btn[3]), .outsig(dbtn[3]));
+
+	wire reset;
+	assign reset=dbtn[3]; //tolko dla otladki
 	
 	wire need_s2;
 	wire need_s5;
@@ -292,7 +294,7 @@ module cpuvm2(
 	assign need_d5 = (dd_mode>=3'o2);
 	assign need_d6 = (dd_mode==3'o3) || (dd_mode==3'o5) || (dd_mode==3'o7);
 	
-//следующий цикл
+// 
 	assign new_istate= istate==f1?((trap||irq||oddpc)?h1:f2):
 							 istate==f2?f3:
 							 istate==f3?f4: //todo -- wait for rply==0
@@ -325,46 +327,77 @@ module cpuvm2(
 							 istate==d8?d9:
 							 //istate==d9?:							 
 							 istate;
-//qbus шина							 
+//qbus 							 
 	assign din=( (istate==f2)||(istate==f3))?1'h0:1'hz; 
 	assign dout=1;
 	assign sync=( (istate==f1))?1'h1:1'h0; 
 	assign ad=(istate==f1)?gpr[7]:
 				 16'hz;
 
-	always @(posedge clk)
-	begin
-		gpr[0]=16'h1000;
-		gpr[1]=16'h1001;
-		gpr[2]=16'h1002;
-		gpr[3]=16'h1003;
-		gpr[4]=16'h1004;
-		gpr[5]=16'h1005;		
-		gpr[6]=16'h1006;
-		//gpr[7]=16'h1007;
-	end
 	
+	//glavnyj assigner
 	always @(posedge clk) //next time do on clock
 	begin
-		if((istate==h1)&&(btn[0]))
-		begin
-			if(gpr[7]==16'h0)
-				gpr[7]<=16'hc0;
-			istate<=f1;			
-			gpr[7]<=(gpr[7]+2);
-			//gpr[7][7:3]<=4'h0;
-		end		
+		if(reset)
+			begin
+				gpr[0]<=0;
+				gpr[1]<=0;
+				gpr[2]<=0;
+				gpr[3]<=0;
+				gpr[4]<=0;
+				gpr[5]<=0;
+				gpr[6]<=16'h0080;
+				gpr[7]<=16'he0c0;
+			end
 		else
-			istate<=new_istate;
-			
+		begin
+		//main assigner 
+		//if state!=writeback
+			gpr[7]<=pc_mux;
+		
+		
+		//sp
+		//gpr[6]<=sp_mux;
+		
+		case(istate)
+			f2:
+				inst<=ad;
+			s1:
+				begin
+					//update predec register
+				end
+			s5:
+				begin
+					//update postinc register
+				end
+			d1:
+				begin
+					//update predec register
+				end
+			d5:
+				begin
+					//update postinc register
+				end
+		/*
+			writeback:
+				//do the writeback
+		*/
+			default:
+				begin
+				end
+		endcase
+		
+		end //not reset
+//			istate<=new_istate;
 	end
-	
-	always @(negedge clk) //next time do on clock
-		if(istate==f3)
-			inst<=ad;
 
+	always @(posedge clk)
+		if(reset)
+			istate<=f1;
+		else
+			istate<=/*bus available?*/new_istate/*:istate*/;
 
-//декодируем инструкцию
+// 
   assign inst_15_12 = inst[15:12];
   assign inst_15_9  = inst[15:9];
   assign inst_15_6  = inst[15:6];
@@ -398,7 +431,7 @@ module cpuvm2(
 
 		
 
-//отладка
+//
 	debug idebug(
 			.clk(dbgclk),    
 			.data0(debugdata0),
@@ -409,16 +442,16 @@ module cpuvm2(
 	
 
 /*
-	выборка режима отладки-- переключателями 7-4 -- 
-	выборка данных для индикации -- переключателями 2,1,0
+	  --  7-4 -- 
+	    --  2,1,0
 	
-	режимы -- 0= основные регистры
-	          1= скрытые регистры -- spsw, spc(0=psw, 7=spc, 6=spsw)
-				 2= эффективный адрес| инф о операндах (0=modes,1=regs, 2=moded, 3=regd, 4=ea s, 5=ea d)
-				 3= текущая инструкция
-				 4= текущее состояние
-				 5= следующее состояние
-				 6= шина данных
+	 -- 0=  
+	          1=   -- spsw, spc(0=psw, 7=spc, 6=spsw)
+				 2=  |    (0=modes,1=regs, 2=moded, 3=regd, 4=ea s, 5=ea d)
+				 3=  
+				 4=  
+				 5=  
+				 6=  
 				 
 */
 	wire [15:0] hidregmux;
@@ -438,7 +471,7 @@ module cpuvm2(
 	assign debugdata1=4'b1000;
 
 /*
-светодиоды
+
 */
 	assign led[0]=sync;
 	assign led[1]=din;
