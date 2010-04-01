@@ -162,36 +162,37 @@ module cpuvm2(
    //  e1  e1_result
    //
 
-	parameter 	h1 = 5'b00000;
-   parameter 	f1 = 5'h1;
-	parameter 	f2 = 5'h2;
-	parameter   f3 = 5'h3;
-	parameter   f4 = 5'h4;
+	parameter 	h1 = 8'h0;
+   parameter 	f1 = 8'h1;
+	parameter 	f2 = 8'h2;
+	parameter   f3 = 8'h3;
+	parameter   f4 = 8'h4;
 	
-/*	
-   parameter 	c1 = 5'b00010;
-   parameter 	s1 = 5'b00011;
-   parameter 	s2 = 5'b00100;
-   parameter 	s3 = 5'b00101;
-   parameter 	s4 = 5'b00110;
-   parameter 	d1 = 5'b00111;
-   parameter 	d2 = 5'b01000;
-   parameter 	d3 = 5'b01001;
-   parameter 	d4 = 5'b01010;
-   parameter 	e1 = 5'b01011;
-   parameter 	w1 = 5'b01100;
-   parameter 	o1 = 5'b01101;
-   parameter 	o2 = 5'b01110;
-   parameter 	o3 = 5'b01111;
-   parameter 	p1 = 5'b10001;
-   parameter 	t1 = 5'b10010;
-   parameter 	t2 = 5'b10011;
-   parameter 	t3 = 5'b10100;
-   parameter 	t4 = 5'b10101;
-   parameter 	i1 = 5'b10110;*/
+	parameter	c1 = 8'he;
 	
-	wire [4:0] new_istate; //новое состояние
-	reg [4:0] istate;     //текущее состояние
+	parameter	d1	= 8'h11;
+	parameter	d2 = 8'h12;
+	parameter	d3 = 8'h13;
+	parameter	d4 = 8'h14;
+	parameter	d5 = 8'h15;
+	parameter	d6 = 8'h16;
+	parameter	d7 = 8'h17;
+	parameter   d8 = 8'h18;
+	parameter	d9 = 8'h19;
+
+	parameter	s1	= 8'h21;
+	parameter	s2 = 8'h22;
+	parameter	s3 = 8'h23;
+	parameter	s4 = 8'h24;
+	parameter	s5 = 8'h25;
+	parameter	s6 = 8'h26;
+	parameter	s7 = 8'h27;
+	parameter   s8 = 8'h28;
+	parameter	s9 = 8'h29;
+
+	
+	wire [7:0] new_istate; //новое состояние
+	reg [7:0] istate;     //текущее состояние
 	
 	reg [15:0] gpr[7:0];
 	wire [15:0] pc;
@@ -218,6 +219,33 @@ module cpuvm2(
 	
 	wire [2:0] ss_mode,ss_reg;
 	wire [2:0] dd_mode,dd_reg;
+	wire opsize;
+
+	reg [15:0] inst;
+	reg [15:0] dd_ea;
+	reg [15:0] ss_ea;
+
+
+	assign ss_mode=inst[11:9];
+	assign ss_reg=inst[8:6];
+	assign dd_mode=inst[5:3];
+	assign dd_reg=inst[2:0];
+	assign opsize=inst[15];
+
+   wire [3:0] 	inst_15_12;
+   wire [6:0] 	inst_15_9;
+   wire [9:0] 	inst_15_6;
+   wire [5:0] 	inst_11_6;
+   wire [2:0] 	inst_11_9;
+   wire [5:0] 	inst_5_0;
+	
+ 	
+	wire need_ss_word;
+	wire need_ss_byte;
+	wire need_ss;
+	wire need_dd_word;
+	wire need_dd_byte;
+	wire need_dd;
 	
 	reg [15:0] ss_data; //результат циклов S
 	reg [15:0] dd_data; //результат циклов D
@@ -229,9 +257,6 @@ module cpuvm2(
 	wire [15:0] e1_result;   //мультиплексор результата
 	wire [15:0] e1_resulth;	 //мультиплексор результата (старшее слово)
 	
-	reg [15:0] inst;
-	reg [15:0] dd_ea;
-	reg [15:0] ss_ea;
 	
 	wire trap;
 	wire irq;
@@ -251,12 +276,54 @@ module cpuvm2(
 	debounce bnc3( .clk(clk), .insig(btn[3]), .outsig(dbtn[3]));
 				
 	
+	wire need_s2;
+	wire need_s5;
+	wire need_s6;
+	
+	assign need_s2 = (ss_mode>=3'o1);	
+	assign need_s5 = (ss_mode>=3'o2);
+	assign need_s6 = (ss_mode==3'o3) || (ss_mode==3'o5) || (ss_mode==3'o7);
+	
+	wire need_d2;
+	wire need_d5;
+	wire need_d6;
+	
+	assign need_d2 = (dd_mode>=3'o1);	
+	assign need_d5 = (dd_mode>=3'o2);
+	assign need_d6 = (dd_mode==3'o3) || (dd_mode==3'o5) || (dd_mode==3'o7);
 	
 //следующий цикл
 	assign new_istate= istate==f1?((trap||irq||oddpc)?h1:f2):
 							 istate==f2?f3:
 							 istate==f3?f4: //todo -- wait for rply==0
-							 istate==f4?h1:
+							 istate==f4?c1:
+							 istate==c1?(
+								need_ss?s1:
+								need_dd?d1:istate):
+
+
+							 istate==s1?(need_s2?s2:
+											(need_dd?d1:istate)):
+							 istate==s2?s3:
+							 istate==s3?s4:
+							 istate==s4?(need_s5?s5:
+											(need_dd?d1:istate)):
+							 istate==s5?(need_s6?s6:
+											(need_dd?d1:istate)):
+							 istate==s6?s7:
+							 istate==s7?s8:
+							 istate==s8?s9:
+							 istate==s9?(need_dd?d1:istate):
+
+							 istate==d1?(need_d2?d2:istate):
+							 istate==d2?d3:
+							 istate==d3?d4:
+							 istate==d4?(need_d5?d5:istate):
+							 istate==d5?(need_d6?d6:istate):
+							 istate==d6?d7:
+							 istate==d7?d8:
+							 istate==d8?d9:
+							 //istate==d9?:							 
 							 istate;
 //qbus шина							 
 	assign din=( (istate==f2)||(istate==f3))?1'h0:1'hz; 
@@ -281,6 +348,8 @@ module cpuvm2(
 	begin
 		if((istate==h1)&&(btn[0]))
 		begin
+			if(gpr[7]==16'h0)
+				gpr[7]<=16'hc0;
 			istate<=f1;			
 			gpr[7]<=(gpr[7]+2);
 			//gpr[7][7:3]<=4'h0;
@@ -293,6 +362,40 @@ module cpuvm2(
 	always @(negedge clk) //next time do on clock
 		if(istate==f3)
 			inst<=ad;
+
+
+//декодируем инструкцию
+  assign inst_15_12 = inst[15:12];
+  assign inst_15_9  = inst[15:9];
+  assign inst_15_6  = inst[15:6];
+  assign inst_11_6  = inst[11:6];
+  assign inst_11_9  = inst[11:9];
+  assign inst_5_0   = inst[5:0];
+  
+	assign need_dd_word=
+			(inst_15_6==10'o0001) || 		//jmp 	0001DD
+			(inst_15_6==10'o0003) ||		//swab	0003dd
+			(inst_15_12==0 && (inst_11_6 >=6'o40 && inst_11_6 <= 6'o63))||			//jsr - asl
+			(inst_15_12==0 && inst_11_6 ==6'o67) ||				//sxt 0067dd
+			(inst_15_12>=4'o01 && inst_15_12 <=4'o06) ||			//mov-add
+			(inst_15_9 >=7'o070 && inst_15_9 <=7'o074) ||		//mul-xor
+			(inst_15_6==10'o1064) || //mtps  1064SS !!!! note SS
+			(inst_15_12==4'o16);		//sub
+	assign need_dd_byte=
+			(inst_15_12==4'o10 && (inst_11_6 >=6'o50 && inst_11_6 <=6'o64))|| //all .B inst
+			(inst_15_6==4'o1067) || //mfps
+			(inst_15_12>=4'o11 && inst_15_12<4'o16); 		//xxxxb
+	assign need_dd= need_dd_word|need_dd_byte;
+	
+	assign need_ss_word=
+			 (inst_15_12 >= 4'o01 && inst_15_12 <=4'o06) ||  //mov-add
+			 (inst_15_12 == 4'o16); 		//sub
+	assign need_ss_byte=
+			 (inst_15_12 >=4'o11 && inst_15_12 <=4'o15); //movb-sub
+
+	assign need_ss=need_ss_word|need_ss_byte;
+			
+
 		
 
 //отладка
@@ -311,7 +414,7 @@ module cpuvm2(
 	
 	режимы -- 0= основные регистры
 	          1= скрытые регистры -- spsw, spc(0=psw, 7=spc, 6=spsw)
-				 2= эффективный адрес
+				 2= эффективный адрес| инф о операндах (0=modes,1=regs, 2=moded, 3=regd, 4=ea s, 5=ea d)
 				 3= текущая инструкция
 				 4= текущее состояние
 				 5= следующее состояние
