@@ -23,17 +23,20 @@ module clkdiv(
     output clk6,
     output clk8,
     output clkps,
-    output clkled
+    output clkled,
+	 output clkmem
     );
 	 
 	 reg [31:0] count6;
 	 reg [31:0] count8;
 	 reg [31:0] countled;
 	 reg [31:0] countps;
+	 reg [31:0] countmem;
 	 reg clkpso;
 	 reg clk6o;
 	 reg clk8o;
 	 reg clkledo;
+	 reg clkmemo;
 	 
 	 always @(posedge clk)
 	 begin
@@ -41,6 +44,13 @@ module clkdiv(
 		count8<=count8+1;
 		countps<=countps+1;
 		countled<=countled+1;
+		countmem<=countmem+1;
+		
+		if(countmem==3)
+		begin
+			countmem<=0;
+			clkmemo<=!clkmemo;
+		end
 		
 		if(count6==8)
 		begin
@@ -51,7 +61,8 @@ module clkdiv(
 		begin
 			count8<=0;
 			clk8o<=!clk8o;
-		end		
+		end
+		
 		if(countps==2500000)
 		begin
 			countps<=0;
@@ -69,5 +80,6 @@ module clkdiv(
 	 assign clk6=clk6o;
 	 assign clk8=clk8o;
 	 assign clkled=clkledo;
+	 assign clkmem=clkmemo;
 
 endmodule

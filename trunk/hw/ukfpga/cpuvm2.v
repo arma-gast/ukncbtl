@@ -39,11 +39,27 @@ module cpuvm2(
     output dout,			// пишем ¬”
     output wtbt,			// запись-байт
 
-    inout [15:0] ad		
+    inout [15:0] ad,		
+	 
+	 //отладка :)
+	 
+	 input dbgclk,
+	 output [6:0] seg,
+	 output dot,
+	 output [3:0] an,	 	 
+	 input [7:0] sw,
+	 input [3:0] btn,
+	 output [7:0] led
+	 
     );
 	 
 	 //FSM процессора
-	// f1 fetch;	   clock isn
+	// f1  posedge(ad=addr,sync=1)
+	// f2  posedge(ad=z, sync=0)   negedge(din=0)
+	// f3  posedge(if rply==0 f4)  negedge(latch db)
+	// f4  posedge(din=1...) move out..
+	//
+	
    // c1 decode;
    //
    // s1 source1;	адрес + sync
@@ -147,7 +163,12 @@ module cpuvm2(
    //
 
 	parameter 	h1 = 5'b00000;
-   parameter 	f1 = 5'b00001;
+   parameter 	f1 = 5'h1;
+	parameter 	f2 = 5'h2;
+	parameter   f3 = 5'h3;
+	parameter   f4 = 5'h4;
+	
+/*	
    parameter 	c1 = 5'b00010;
    parameter 	s1 = 5'b00011;
    parameter 	s2 = 5'b00100;
@@ -167,18 +188,18 @@ module cpuvm2(
    parameter 	t2 = 5'b10011;
    parameter 	t3 = 5'b10100;
    parameter 	t4 = 5'b10101;
-   parameter 	i1 = 5'b10110;
+   parameter 	i1 = 5'b10110;*/
 	
 	wire [4:0] new_istate; //новое состо€ние
 	reg [4:0] istate;     //текущее состо€ние
 	
-	reg [15:0] r0,r1,r2,r3,r4,r5,r6;
-	reg [15:0] pc;
+	reg [15:0] gpr[7:0];
+	wire [15:0] pc;
 	reg [15:0] psw;
 	
 	reg [15:0] spc; 	
 	reg [15:0] spsw;
-	
+		
 	wire [15:0] pc_mux;  //мультиплексор дл€ следующего PC
 	
 	wire cc_n,cc_z,cc_v,cc_c;
@@ -192,7 +213,8 @@ module cpuvm2(
 	assign cc_t=psw[4];
 	assign cc_p=psw[7];
 	assign cc_halt=psw[8];
-	assign sp=r6;
+	assign sp=gpr[6];
+	assign pc=gpr[7];
 	
 	wire [2:0] ss_mode,ss_reg;
 	wire [2:0] dd_mode,dd_reg;
@@ -215,39 +237,108 @@ module cpuvm2(
 	wire irq;
 	wire oddpc;
 	
+	//отладка
+	wire [15:0] debugdata0;
+	wire [3:0]  debugdata1;
 	
 	assign oddpc=pc[0];
 	
+	wire [3:0] dbtn;
+	
+	debounce bnc0( .clk(clk), .insig(btn[0]), .outsig(dbtn[0]));
+	debounce bnc1( .clk(clk), .insig(btn[1]), .outsig(dbtn[1]));
+	debounce bnc2( .clk(clk), .insig(btn[2]), .outsig(dbtn[2]));
+	debounce bnc3( .clk(clk), .insig(btn[3]), .outsig(dbtn[3]));
+				
+	
+	
 //следующий цикл
-	assign new_istate= istate==f1?((trap||irq||oddpc)?t1:c1):
-							 istate==c1?s1:
-							 istate==s1?s2:
-							 istate==s2?s3:
-							 istate==s3?s4:
-							 istate==s4?d1:
-							 istate==d1?d2:
-							 istate==d2?d3:
-							 istate==d3?d4:
-							 istate==d4?e1:
-							 istate==e1?w1:
-							 istate==w1?f1:
-							 
-							 //безусловные
-							 istate==o1?o2:
-							 istate==o2?f1:
-							 istate==o3?w1:							 
-							 istate==p1?e1:							 
-							 istate==t1?t2:
-							 istate==t2?t3:
-							 istate==t3?t4:
-							 istate==t4?f1:
-							 
-							 //прерывание?
-							 istate==i1?(irq?f1:i1):
-							 
-							 
+	assign new_istate= istate==f1?((trap||irq||oddpc)?h1:f2):
+							 istate==f2?f3:
+							 istate==f3?f4: //todo -- wait for rply==0
+							 istate==f4?h1:
 							 istate;
+//qbus шина							 
+	assign din=( (istate==f2)||(istate==f3))?1'h0:1'hz; 
+	assign dout=1;
+	assign sync=( (istate==f1))?1'h1:1'h0; 
+	assign ad=(istate==f1)?gpr[7]:
+				 16'hz;
 
+	always @(posedge clk)
+	begin
+		gpr[0]=16'h1000;
+		gpr[1]=16'h1001;
+		gpr[2]=16'h1002;
+		gpr[3]=16'h1003;
+		gpr[4]=16'h1004;
+		gpr[5]=16'h1005;		
+		gpr[6]=16'h1006;
+		//gpr[7]=16'h1007;
+	end
+	
+	always @(posedge clk) //next time do on clock
+	begin
+		if((istate==h1)&&(btn[0]))
+		begin
+			istate<=f1;			
+			gpr[7]<=(gpr[7]+2);
+			//gpr[7][7:3]<=4'h0;
+		end		
+		else
+			istate<=new_istate;
+			
+	end
+	
+	always @(negedge clk) //next time do on clock
+		if(istate==f3)
+			inst<=ad;
+		
 
+//отладка
+	debug idebug(
+			.clk(dbgclk),    
+			.data0(debugdata0),
+			.data1(debugdata1),
+			.seg(seg),
+			.dot(dot),
+			.an(an));
+	
+
+/*
+	выборка режима отладки-- переключател€ми 7-4 -- 
+	выборка данных дл€ индикации -- переключател€ми 2,1,0
+	
+	режимы -- 0= основные регистры
+	          1= скрытые регистры -- spsw, spc(0=psw, 7=spc, 6=spsw)
+				 2= эффективный адрес
+				 3= текуща€ инструкци€
+				 4= текущее состо€ние
+				 5= следующее состо€ние
+				 6= шина данных
+				 
+*/
+	wire [15:0] hidregmux;
+	assign hidregmux=	(sw[2:0]==3'h0)?psw:
+							(sw[2:0]==3'h6)?spsw:
+							(sw[2:0]==3'h7)?spc:
+							16'hfeed;
+	
+	assign debugdata0=(sw[7:4]==4'h0)?gpr[sw[2:0]]:
+							(sw[7:4]==4'h1)?hidregmux:
+							(sw[7:4]==4'h3)?inst:
+							(sw[7:4]==4'h4)?(istate):
+							(sw[7:4]==4'h5)?(new_istate):
+							(sw[7:4]==4'h6)?(ad):
+							16'hfeed;
+								
+	assign debugdata1=4'b1000;
+
+/*
+светодиоды
+*/
+	assign led[0]=sync;
+	assign led[1]=din;
+	assign led[2]=dout;
 
 endmodule
