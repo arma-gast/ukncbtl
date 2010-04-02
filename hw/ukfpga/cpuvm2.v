@@ -162,60 +162,43 @@ module cpuvm2(
    //  e1  e1_result
    //
 
-	parameter 	h1 = 8'h0;
-   parameter 	f1 = 8'h1;
-	parameter 	f2 = 8'h2;
-	parameter   f3 = 8'h3;
-	parameter   f4 = 8'h4;
-	
-	parameter	c1 = 8'he;
-	
-	parameter	d1	= 8'h11;
-	parameter	d2 = 8'h12;
-	parameter	d3 = 8'h13;
-	parameter	d4 = 8'h14;
-	parameter	d5 = 8'h15;
-	parameter	d6 = 8'h16;
-	parameter	d7 = 8'h17;
-	parameter   d8 = 8'h18;
-	parameter	d9 = 8'h19;
-
-	parameter	s1	= 8'h21;
-	parameter	s2 = 8'h22;
-	parameter	s3 = 8'h23;
-	parameter	s4 = 8'h24;
-	parameter	s5 = 8'h25;
-	parameter	s6 = 8'h26;
-	parameter	s7 = 8'h27;
-	parameter   s8 = 8'h28;
-	parameter	s9 = 8'h29;
-
-	
-	wire [7:0] new_istate; //новое состояние
-	reg [7:0] istate;     //текущее состояние
-	
 	reg [15:0] gpr[7:0];
-	wire [15:0] pc;
 	reg [15:0] psw;
-	
-	reg [15:0] spc; 	
 	reg [15:0] spsw;
-		
-	wire [15:0] pc_mux;  //мультиплексор для следующего PC
+	reg [15:0] spc;
 	
-	wire cc_n,cc_z,cc_v,cc_c;
-	wire cc_halt,cc_p,cc_t;
-	wire sp;
+	reg [7:0] istate;
+	wire [7:0] new_istate;
+
+	/*
+		vnutrennaja shina :
+				i_rd, i_wr, i_byte, i_done.
+				[15:0]i_datai,[15:0] i_datao
+				[15:0]i_addr
+		QBUS:
+				~SYNC, ~RPLY, ~DIN, ~DOUT, ~WTBT, ~BSY
+				[15:0]AD
+	*/
 	
-	assign cc_c=psw[0];
-	assign cc_v=psw[1];
-	assign cc_z=psw[2];
-	assign cc_n=psw[3];
-	assign cc_t=psw[4];
-	assign cc_p=psw[7];
-	assign cc_halt=psw[8];
-	assign sp=gpr[6];
-	assign pc=gpr[7];
+	reg i_rd,i_wr,i_byte;
+	wire i_done;
+	reg [15:0] i_datai;
+	wire [15:0] i_datao;
+	wire [15:0] i_addr;
+	
+	
+	parameter [4:0]	BS_IDLE=0,
+							BS_R0=1,
+							BS_R1=2,
+							BS_W0=3,
+							BS_W1=4,
+							BS_DONE=5,
+							BS_ERROR=6;
+
+	parameter BS_TIMEOUT	= 63; 
+	reg [4:0] bs_state;
+	wire [4:0] bs_newstate;
+	reg [5:0] bs_timeout;	
 	
 	wire [2:0] ss_mode,ss_reg;
 	wire [2:0] dd_mode,dd_reg;
@@ -258,15 +241,12 @@ module cpuvm2(
 	wire [15:0] e1_resulth;	 //мультиплексор результата (старшее слово)
 	
 	
-	wire trap;
-	wire irq;
-	wire oddpc;
 	
 	//отладка
 	wire [15:0] debugdata0;
 	wire [3:0]  debugdata1;
 	
-	assign oddpc=pc[0];
+	//assign oddpc=pc[0];
 	
 	wire [3:0] dbtn;
 	
@@ -276,7 +256,8 @@ module cpuvm2(
 	debounce bnc3( .clk(dbgclk), .insig(btn[3]), .outsig(dbtn[3]));
 
 	wire reset;
-	assign reset=dbtn[3]; //tolko dla otladki
+	wire allowexec;
+	assign reset=~btn[3]; //tolko dla otladki
 	
 	wire need_s2;
 	wire need_s5;
@@ -295,107 +276,111 @@ module cpuvm2(
 	assign need_d6 = (dd_mode==3'o3) || (dd_mode==3'o5) || (dd_mode==3'o7);
 	
 //следующий цикл
-	assign new_istate= istate==f1?((trap||irq||oddpc)?h1:f2):
-							 istate==f2?f3:
-							 istate==f3?f4: //todo -- wait for rply==0
-							 istate==f4?c1:
-							 istate==c1?(
-								need_ss?s1:
-								need_dd?d1:istate):
-
-
-							 istate==s1?(need_s2?s2:
-											(need_dd?d1:istate)):
-							 istate==s2?s3:
-							 istate==s3?s4:
-							 istate==s4?(need_s5?s5:
-											(need_dd?d1:istate)):
-							 istate==s5?(need_s6?s6:
-											(need_dd?d1:istate)):
-							 istate==s6?s7:
-							 istate==s7?s8:
-							 istate==s8?s9:
-							 istate==s9?(need_dd?d1:istate):
-
-							 istate==d1?(need_d2?d2:istate):
-							 istate==d2?d3:
-							 istate==d3?d4:
-							 istate==d4?(need_d5?d5:istate):
-							 istate==d5?(need_d6?d6:istate):
-							 istate==d6?d7:
-							 istate==d7?d8:
-							 istate==d8?d9:
-							 //istate==d9?:							 
-							 istate;
-//qbus шина							 
-	assign din=( (istate==f2)||(istate==f3))?1'h0:1'hz; 
-	assign dout=1;
-	assign sync=( (istate==f1))?1'h1:1'h0; 
-	assign ad=(istate==f1)?gpr[7]:
-				 16'hz;
-
+	reg clco;
 	
-	//glavnyj assigner
-	always @(posedge clk) //next time do on clock
+	always @(posedge clk)
+		clco<=!clco;
+	
+	assign i_addr=gpr[7];
+	assign i_datao=gpr[0];
+		
+	always @(posedge clco)
 	begin
-		if(reset)
+		if(!reset)
 			begin
-				gpr[0]<=0;
-				gpr[1]<=0;
-				gpr[2]<=0;
-				gpr[3]<=0;
-				gpr[4]<=0;
-				gpr[5]<=0;
-				gpr[6]<=16'h0080;
-				gpr[7]<=16'he0c0;
+				gpr[0]<=16'h0;
+				gpr[1]<=16'h0;
+				gpr[2]<=16'h0;
+				gpr[3]<=16'h0;
+				gpr[4]<=16'h0;
+				gpr[5]<=16'h0;
+				gpr[6]<=16'h0;
+				gpr[7]<=16'hE0C0;
+				i_rd<=0;
+				i_wr<=0;
+				i_byte<=0;
 			end
 		else
-		begin
-		//main assigner 
-		//if state!=writeback
-			gpr[7]<=pc_mux;
-		
-		
-		//sp
-		//gpr[6]<=sp_mux;
-		
-		case(istate)
-			f2:
-				inst<=ad;
-			s1:
-				begin
-					//update predec register
-				end
-			s5:
-				begin
-					//update postinc register
-				end
-			d1:
-				begin
-					//update predec register
-				end
-			d5:
-				begin
-					//update postinc register
-				end
-		/*
-			writeback:
-				//do the writeback
-		*/
-			default:
-				begin
-				end
-		endcase
-		
-		end //not reset
-//			istate<=new_istate;
+			begin
+				if(allowexec)
+					begin
+						if(btn[0])
+						begin
+							i_rd<=1;						
+						end
+					end
+				else
+				if(bs_state==BS_DONE)
+					i_rd<=0;				
+			end
 	end
 
+//qbus shina							 
+
+	
+	
+	
+	assign bs_newstate = bs_state==BS_IDLE?(
+										(reset && i_rd && !i_wr)?BS_R0:
+										(reset && !i_rd && i_wr)?BS_W0:
+										BS_IDLE):
+								bs_state==BS_R0?(
+										(reset && i_rd && !i_wr)?BS_R1:
+										BS_IDLE):
+								bs_state==BS_R1?(
+										(reset && i_rd && !i_wr && rply)?BS_R1:
+										(reset && i_rd && !i_wr && !rply)?BS_DONE:
+										BS_IDLE):
+								bs_state==BS_W0?(
+										(reset && i_wr && !i_rd)?BS_W1:
+										BS_IDLE):
+								bs_state==BS_W1?(
+										(reset && i_wr && !i_rd && rply)?BS_W1:
+										(reset && i_wr && !i_rd && rply)?BS_DONE:
+										BS_IDLE):
+								bs_state==BS_DONE?(
+										(reset && (i_wr || i_rd))?BS_DONE:
+										BS_IDLE):
+										BS_IDLE;
+
+	assign wtbt= (bs_state==BS_R0)?1'd0:
+					 (bs_state==BS_W0)?1'd1:
+					 (bs_state==BS_R1)?i_byte:
+					 (bs_state==BS_W1)?i_byte:
+					 1'h1;
+	assign sync= (bs_state==BS_R1)?1'd0:
+					 (bs_state==BS_W1)?1'd0:
+					 (bs_state==BS_DONE)?1'd0:
+					 1'd1;
+	assign din=	 (bs_state==BS_R1)?1'd0:
+					 (bs_state==BS_DONE)?!i_rd:
+					 1'd1;
+	assign dout= (bs_state==BS_W1)?1'd0:
+					 (bs_state==BS_DONE)?!i_wr:
+					 1'd1;
+
+	wire [15:0] adoutmux;
+	
+	
+	
+	assign ad= (bs_state==BS_R0)?i_addr:16'hz;
+	assign adoutmux= (bs_state==BS_R0)?i_addr:16'hz;
+	
+	//assign ad=( (bs_state==BS_R0) || (bs_state==BS_W1) || (bs_state==BS_W1) )?adoutmux:16'hz;
+	
+	
+	assign allowexec= (bs_state==BS_IDLE)?1:0;
+	
 	always @(posedge clk)
+	begin
 		if(reset)
-			istate<=f1;
-		else
-			istate<=/*bus available?*/new_istate/*:istate*/;
+		begin
+			bs_state<=bs_newstate;
+			if(bs_state==BS_R1)
+				i_datai<=ad;		
+		end
+	end
+	
 
 //декодируем инструкцию
   assign inst_15_12 = inst[15:12];
@@ -452,6 +437,8 @@ module cpuvm2(
 				 4= текущее состояние
 				 5= следующее состояние
 				 6= шина данных
+				 7= tekuschee sostojanie shiny
+				 8= sledujusche sostojanie shiny
 				 
 */
 	wire [15:0] hidregmux;
@@ -462,10 +449,13 @@ module cpuvm2(
 	
 	assign debugdata0=(sw[7:4]==4'h0)?gpr[sw[2:0]]:
 							(sw[7:4]==4'h1)?hidregmux:
-							(sw[7:4]==4'h3)?inst:
+							(sw[7:4]==4'h3)?i_datai:
 							(sw[7:4]==4'h4)?(istate):
 							(sw[7:4]==4'h5)?(new_istate):
 							(sw[7:4]==4'h6)?(ad):
+							(sw[7:4]==4'h7)?(bs_state):
+							(sw[7:4]==4'h8)?(bs_newstate):
+							(sw[7:4]==4'h9)?(i_addr):
 							16'hfeed;
 								
 	assign debugdata1=4'b1000;

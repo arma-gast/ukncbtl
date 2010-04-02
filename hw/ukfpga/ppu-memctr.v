@@ -51,12 +51,12 @@ module ppumemctr(
 		dly<=dly+1;
 	 end
 		
-	 assign ad=din?16'hz:memdata;
+	 assign ad=(!din && !sync)?memdata:16'hz;
 	 assign memaddr[14:0]=qaddr[14:0];
-	 assign memaddr[15]=(din==0)?0:1'hz;
+	 assign memaddr[15]=0;
 	 
 	 //assign flashcs=(din)&&(dout); //for now
-	 assign flashcs=(din)||(qaddr[15]==0);
+	 assign flashcs=((din==0)&&(qaddr[15]==1))?1'h0:1'h1;
 	 
 	 assign memoe=(din);
 	 assign memrw=1;
