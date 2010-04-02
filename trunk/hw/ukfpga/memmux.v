@@ -47,8 +47,10 @@ module memmux(
 	 assign memramcs=ppu_ramcs;
 	 assign memaddr[16:1]=ppu_addr[15:0];
 	 assign memaddr[23:17]=7'd0;
+	 
 	 assign memdata=(memrw==0)?ppu_data:16'hz;	 
-	 assign ppu_data=memrw?memdata:16'hz;
+	 assign ppu_data=(!memflcs && memrw)?memdata:16'hz;
+	 
 	 assign ppu_rdy=clk; //always ready on pos edge
 
 

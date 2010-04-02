@@ -6,7 +6,6 @@
         <trait edittrait="all:0" />
     </attr>
     <netlist>
-        <signal name="XLXN_86" />
         <signal name="sw(7:0)" />
         <signal name="btn(3:0)" />
         <signal name="XLXN_90" />
@@ -15,13 +14,9 @@
         <signal name="an(3:0)" />
         <signal name="clk" />
         <signal name="Led(7:0)" />
-        <signal name="XLXN_97" />
         <signal name="XLXN_98" />
         <signal name="XLXN_99" />
         <signal name="XLXN_101" />
-        <signal name="XLXN_102" />
-        <signal name="XLXN_103" />
-        <signal name="XLXN_104" />
         <signal name="XLXN_105" />
         <signal name="XLXN_106" />
         <signal name="XLXN_107(15:0)" />
@@ -29,20 +24,16 @@
         <signal name="XLXN_109" />
         <signal name="XLXN_110" />
         <signal name="XLXN_111(15:0)" />
-        <signal name="XLXN_113(15:0)" />
         <signal name="XLXN_114" />
-        <signal name="XLXN_115" />
         <signal name="XLXN_116" />
         <signal name="MemOE" />
         <signal name="MemWR" />
         <signal name="FlashCS" />
-        <signal name="XLXN_120" />
         <signal name="RamCS" />
         <signal name="MemDB(15:0)" />
         <signal name="MemAdr(23:1)" />
         <signal name="FlashRp" />
         <signal name="leda(7:0)" />
-        <signal name="XLXN_130" />
         <signal name="leda(0)" />
         <signal name="leda(1)" />
         <signal name="leda(2)" />
@@ -52,9 +43,9 @@
         <signal name="Led(7)" />
         <signal name="Led(6)" />
         <signal name="Led(5)" />
-        <signal name="XLXN_144" />
         <signal name="XLXN_146" />
         <signal name="XLXN_147" />
+        <signal name="XLXN_148(15:0)" />
         <port polarity="Input" name="sw(7:0)" />
         <port polarity="Input" name="btn(3:0)" />
         <port polarity="Output" name="dp" />
@@ -252,7 +243,7 @@
             <blockpin signalname="XLXN_106" name="wtbt" />
             <blockpin name="halt" />
             <blockpin signalname="XLXN_107(15:0)" name="ad(15:0)" />
-            <blockpin signalname="XLXN_113(15:0)" name="memdata(15:0)" />
+            <blockpin signalname="XLXN_148(15:0)" name="memdata(15:0)" />
             <blockpin signalname="XLXN_101" name="rply" />
             <blockpin signalname="XLXN_108" name="flashcs" />
             <blockpin signalname="XLXN_109" name="memoe" />
@@ -278,7 +269,7 @@
             <blockpin signalname="FlashCS" name="memflcs" />
             <blockpin signalname="RamCS" name="memramcs" />
             <blockpin signalname="MemAdr(23:1)" name="memaddr(23:1)" />
-            <blockpin signalname="XLXN_113(15:0)" name="ppu_data(15:0)" />
+            <blockpin signalname="XLXN_148(15:0)" name="ppu_data(15:0)" />
             <blockpin name="cpu_data(15:0)" />
             <blockpin signalname="MemDB(15:0)" name="memdata(15:0)" />
         </block>
@@ -428,15 +419,6 @@
         </branch>
         <branch name="XLXN_111(15:0)">
             <wire x2="1808" y1="2288" y2="2288" x1="1008" />
-        </branch>
-        <branch name="XLXN_113(15:0)">
-            <wire x2="1024" y1="2224" y2="2224" x1="1008" />
-            <wire x2="1024" y1="2224" y2="2272" x1="1024" />
-            <wire x2="1088" y1="2272" y2="2272" x1="1024" />
-            <wire x2="1088" y1="2272" y2="2464" x1="1088" />
-            <wire x2="2352" y1="2464" y2="2464" x1="1088" />
-            <wire x2="2352" y1="2224" y2="2224" x1="2272" />
-            <wire x2="2352" y1="2224" y2="2464" x1="2352" />
         </branch>
         <instance x="1456" y="1808" name="XLXI_58" orien="R0">
         </instance>
@@ -597,6 +579,13 @@
             <wire x2="1072" y1="736" y2="736" x1="560" />
             <wire x2="1072" y1="512" y2="512" x1="1008" />
             <wire x2="1072" y1="512" y2="736" x1="1072" />
+        </branch>
+        <branch name="XLXN_148(15:0)">
+            <wire x2="1024" y1="2224" y2="2224" x1="1008" />
+            <wire x2="1024" y1="2224" y2="2432" x1="1024" />
+            <wire x2="2320" y1="2432" y2="2432" x1="1024" />
+            <wire x2="2320" y1="2224" y2="2224" x1="2272" />
+            <wire x2="2320" y1="2224" y2="2432" x1="2320" />
         </branch>
     </sheet>
 </drawing>

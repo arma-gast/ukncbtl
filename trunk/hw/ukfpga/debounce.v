@@ -27,17 +27,17 @@ module debounce(
  reg [14:0] clkdiv;
    reg 	      slowclk;
    reg [9:0]  hold;
-   reg 	      onetime;
+   //reg 	      onetime;
    
    initial
      begin
-	onetime = 0;
+	//onetime = 0;
 	hold = 0;
 	clkdiv = 0;
 	slowclk = 0;
      end
    
-   assign outsig = hold == 10'b1111111111 || ~onetime;
+   assign outsig = hold == 10'b1111111111 /*|| ~onetime*/;
 		
    always @(posedge clk)
      begin
@@ -48,8 +48,8 @@ module debounce(
 
    always @(posedge slowclk)
      begin
-	hold <= { hold[8:0], insig };
-	onetime <= 1;
+			hold <= { hold[8:0], insig };
+			//onetime <= 1;
      end
 
 endmodule
