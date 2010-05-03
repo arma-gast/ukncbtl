@@ -30,3 +30,22 @@ LLLLLLLLLLLLLLLLL + TTTT идет в АЛУ
 LLLLLLLLLLLLLLLLL + BBBB+ TTTT идет в блок переходов
 
 LLLLLLLLLLLLLLLLL + CCC + TTTT идет в блок управления
+
+для удобночтения микрокода -- буду его писать мнемонически как связку:
+
+пример
+NEXT=10|R7=OP|NOP|NOP|STEP=12  -- будет означать
+001000 LLLLLLLLLLLLLLLLL 0000 000 1010   --- (R7=OP пока placeholder)
+
+тоесть 
+СЛЕДМИКР| АЛУ | БП| БУ | ТАКТ
+
+= Микрокоманды БП =
+
+0000  - NOP
+
+= Микрокоманды БУ =
+
+000 - NOP
+
+
