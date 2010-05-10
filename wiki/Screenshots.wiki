@@ -7,6 +7,8 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-RealSpeed.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Keyboard.png
 
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/QtUkncBtl-20100508-mac.png
+
 Загрузка с дискеты:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Alphaprog-boot.png
