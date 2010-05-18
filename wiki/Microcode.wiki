@@ -89,7 +89,17 @@ NEXT=10|R7=OP|NOP|NOP|STEP=12  -- будет означать
 
 Микрокоманды Алу
 {{{
+ uc11 uc10 uc9 uc8 uc7 uc6 uc5 uc4 uc3 uc2 uc1    Описание
 
+  0    X   op3 op2 op1 op0 uR  uR  uR  uR   x     ALU(uR)->uR  (op cannot be x101 or x111)                                                  
+  0    1   1   1   1   1   op3 op2 op1 op0  x     ALU(uRS)->uRS
+  0    X   0   1   1   1   op3 op2 op1 op0  x     ALU(uRB)->uA
+  1    X   0   1   1   1   op3 op2 op1 op0  x     ALU(DB)->uA,uRB
+                                                  В следующих коммандах недопустимо
+                                                  применение опкода 1101 (Mov)
+  1    X   1   1   1   1   op3 op2 op1 op0  x     ALU(uRS)->uRS,uRB (одновременно в оба)
+  0    X   1   1   0   1   op3 op2 op1 op0  x     ALU(uA)->uA
+  1    X   1   1   0   1   op3 op2 op1 op0  x     ALU(uA)->uA,uRB
 }}}
 
 
