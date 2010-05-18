@@ -125,11 +125,18 @@ NEXT=10|R7=OP|NOP|NOP|STEP=12  -- будет означать
 {{{
  uc11 uc10 uc9 uc8 uc7 uc6 uc5 uc4 uc3 uc2     Описание
 
+ 0    1    0   1   1   1   op3 op2 op1 op0     ALU(uRB,uA)->uRS
+ 0    1    1   1   1   1   op3 op2 op1 op0     ALU(uRS,uA)->uA
+ 1    0    1   1   1   1   op3 op2 op1 op0     ALU(uRS,uA)->uRS
+ 1    1    0   1   1   1   op3 op2 op1 op0     ALU(uRB,uA)->uA,uRB
+ 1    1    1   1   1   1   op3 op2 op1 op0     ALU(uRS,uA)->uA,uRB
+ 0    0    X   1   1   1   X   X   X   X       INIT   
+                                               в следующих микрокомандах
+                                               не используется код x111
  0    0    op3 op2 op1 op0 uR  uR  uR  uR      ALU(uR,uA)->uRS
  0    1    op3 op2 op1 op0 uR  uR  uR  uR      ALU(uR,uA)->uA
  1    0    op3 op2 op1 op0 uR  uR  uR  uR      ALU(uR,uA)->uR
- 1    1    op3 op2 op1 op0 uR  uR  uR  uR      ALU(uR,uA)->uA,uRB
- 
+ 1    1    op3 op2 op1 op0 uR  uR  uR  uR      ALU(uR,uA)->uA,uRB 
 }}}
 
 = Микрокоманды БП =
