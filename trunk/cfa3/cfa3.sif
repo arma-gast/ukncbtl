@@ -1,0 +1,1268 @@
+// Node Statistic Information File
+// Tool:  ispLEVER Classic 1.4.00.04.27.10
+// Design 'top' created   Fri Jan 28 21:29:43 2011
+
+// Fmax Logic Level: 1.
+
+// Path: N_25.Q
+//    -> RPLY.D
+
+// Signal Name: D15
+// Type: Bidi
+BEGIN D15
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD15.PIN            	1
+END
+
+// Signal Name: D15.OE
+// Type: Bidi
+BEGIN D15.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D14
+// Type: Bidi
+BEGIN D14
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD14.PIN            	1
+END
+
+// Signal Name: D14.OE
+// Type: Bidi
+BEGIN D14.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D13
+// Type: Bidi
+BEGIN D13
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD13.PIN            	1
+END
+
+// Signal Name: D13.OE
+// Type: Bidi
+BEGIN D13.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D12
+// Type: Bidi
+BEGIN D12
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD12.PIN            	1
+END
+
+// Signal Name: D12.OE
+// Type: Bidi
+BEGIN D12.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D11
+// Type: Bidi
+BEGIN D11
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD11.PIN            	1
+END
+
+// Signal Name: D11.OE
+// Type: Bidi
+BEGIN D11.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D10
+// Type: Bidi
+BEGIN D10
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD10.PIN            	1
+END
+
+// Signal Name: D10.OE
+// Type: Bidi
+BEGIN D10.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D9
+// Type: Bidi
+BEGIN D9
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD9.PIN             	1
+END
+
+// Signal Name: D9.OE
+// Type: Bidi
+BEGIN D9.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D8
+// Type: Bidi
+BEGIN D8
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD8.PIN             	1
+END
+
+// Signal Name: D8.OE
+// Type: Bidi
+BEGIN D8.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D7
+// Type: Bidi
+BEGIN D7
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD7.PIN             	1
+END
+
+// Signal Name: D7.OE
+// Type: Bidi
+BEGIN D7.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D6
+// Type: Bidi
+BEGIN D6
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD6.PIN             	1
+END
+
+// Signal Name: D6.OE
+// Type: Bidi
+BEGIN D6.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D5
+// Type: Bidi
+BEGIN D5
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD5.PIN             	1
+END
+
+// Signal Name: D5.OE
+// Type: Bidi
+BEGIN D5.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D4
+// Type: Bidi
+BEGIN D4
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD4.PIN             	1
+END
+
+// Signal Name: D4.OE
+// Type: Bidi
+BEGIN D4.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D3
+// Type: Bidi
+BEGIN D3
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD3.PIN             	1
+END
+
+// Signal Name: D3.OE
+// Type: Bidi
+BEGIN D3.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D2
+// Type: Bidi
+BEGIN D2
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD2.PIN             	1
+END
+
+// Signal Name: D2.OE
+// Type: Bidi
+BEGIN D2.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D1
+// Type: Bidi
+BEGIN D1
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD1.PIN             	1
+END
+
+// Signal Name: D1.OE
+// Type: Bidi
+BEGIN D1.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: D0
+// Type: Bidi
+BEGIN D0
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD0.PIN             	1
+END
+
+// Signal Name: D0.OE
+// Type: Bidi
+BEGIN D0.OE
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: WR
+// Type: Output
+BEGIN WR
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DOUT.BLIF           	0
+END
+
+// Signal Name: RD
+// Type: Output
+BEGIN RD
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Input     	DIN.BLIF            	0
+END
+
+// Signal Name: IDE_CS
+// Type: Output
+BEGIN IDE_CS
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+END
+
+// Signal Name: FLASH_CS
+// Type: Output
+BEGIN FLASH_CS
+Fanin Number		2
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+END
+
+// Signal Name: RPLY.D
+// Type: Output_reg
+BEGIN RPLY.D
+Fanin Number		5
+Pterm Number		2
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		1
+Fanin Node      	N_25.Q              	4
+Fanin Node      	N_24.Q              	3
+Fanin Node      	N_23.Q              	4
+Fanin Input     	SYNC.BLIF           	0
+Fanin Output    	RPLY.Q              	2
+END
+
+// Signal Name: RPLY.C
+// Type: Output_reg
+BEGIN RPLY.C
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	ICLK.BLIF           	0
+END
+
+// Signal Name: AD0
+// Type: Bidi
+BEGIN AD0
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D0.PIN              	1
+END
+
+// Signal Name: AD0.OE
+// Type: Bidi
+BEGIN AD0.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD1
+// Type: Bidi
+BEGIN AD1
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D1.PIN              	1
+END
+
+// Signal Name: AD1.OE
+// Type: Bidi
+BEGIN AD1.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD2
+// Type: Bidi
+BEGIN AD2
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D2.PIN              	1
+END
+
+// Signal Name: AD2.OE
+// Type: Bidi
+BEGIN AD2.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD3
+// Type: Bidi
+BEGIN AD3
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D3.PIN              	1
+END
+
+// Signal Name: AD3.OE
+// Type: Bidi
+BEGIN AD3.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD4
+// Type: Bidi
+BEGIN AD4
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D4.PIN              	1
+END
+
+// Signal Name: AD4.OE
+// Type: Bidi
+BEGIN AD4.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD5
+// Type: Bidi
+BEGIN AD5
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D5.PIN              	1
+END
+
+// Signal Name: AD5.OE
+// Type: Bidi
+BEGIN AD5.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD6
+// Type: Bidi
+BEGIN AD6
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D6.PIN              	1
+END
+
+// Signal Name: AD6.OE
+// Type: Bidi
+BEGIN AD6.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD7
+// Type: Bidi
+BEGIN AD7
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D7.PIN              	1
+END
+
+// Signal Name: AD7.OE
+// Type: Bidi
+BEGIN AD7.OE
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD8
+// Type: Bidi
+BEGIN AD8
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D8.PIN              	1
+END
+
+// Signal Name: AD8.OE
+// Type: Bidi
+BEGIN AD8.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD9
+// Type: Bidi
+BEGIN AD9
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D9.PIN              	1
+END
+
+// Signal Name: AD9.OE
+// Type: Bidi
+BEGIN AD9.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD10
+// Type: Bidi
+BEGIN AD10
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D10.PIN             	1
+END
+
+// Signal Name: AD10.OE
+// Type: Bidi
+BEGIN AD10.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD11
+// Type: Bidi
+BEGIN AD11
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D11.PIN             	1
+END
+
+// Signal Name: AD11.OE
+// Type: Bidi
+BEGIN AD11.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD12
+// Type: Bidi
+BEGIN AD12
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D12.PIN             	1
+END
+
+// Signal Name: AD12.OE
+// Type: Bidi
+BEGIN AD12.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD13
+// Type: Bidi
+BEGIN AD13
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D13.PIN             	1
+END
+
+// Signal Name: AD13.OE
+// Type: Bidi
+BEGIN AD13.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD14
+// Type: Bidi
+BEGIN AD14
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D14.PIN             	1
+END
+
+// Signal Name: AD14.OE
+// Type: Bidi
+BEGIN AD14.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: AD15
+// Type: Bidi
+BEGIN AD15
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	D15.PIN             	1
+END
+
+// Signal Name: AD15.OE
+// Type: Bidi
+BEGIN AD15.OE
+Fanin Number		3
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_12.BLIF           	1
+Fanin Node      	N_14.Q              	1
+Fanin Output    	RD.BLIF             	1
+END
+
+// Signal Name: A10.D
+// Type: Output_reg
+BEGIN A10.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD11.PIN            	1
+END
+
+// Signal Name: A10.LH
+// Type: Output_reg
+BEGIN A10.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A9.D
+// Type: Output_reg
+BEGIN A9.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD10.PIN            	1
+END
+
+// Signal Name: A9.LH
+// Type: Output_reg
+BEGIN A9.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A8.D
+// Type: Output_reg
+BEGIN A8.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD9.PIN             	1
+END
+
+// Signal Name: A8.LH
+// Type: Output_reg
+BEGIN A8.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A7.D
+// Type: Output_reg
+BEGIN A7.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD8.PIN             	1
+END
+
+// Signal Name: A7.LH
+// Type: Output_reg
+BEGIN A7.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A6.D
+// Type: Output_reg
+BEGIN A6.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD7.PIN             	1
+END
+
+// Signal Name: A6.LH
+// Type: Output_reg
+BEGIN A6.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A5.D
+// Type: Output_reg
+BEGIN A5.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD6.PIN             	1
+END
+
+// Signal Name: A5.LH
+// Type: Output_reg
+BEGIN A5.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A4.D
+// Type: Output_reg
+BEGIN A4.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD5.PIN             	1
+END
+
+// Signal Name: A4.LH
+// Type: Output_reg
+BEGIN A4.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A3.D
+// Type: Output_reg
+BEGIN A3.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD4.PIN             	1
+END
+
+// Signal Name: A3.LH
+// Type: Output_reg
+BEGIN A3.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A2.D
+// Type: Output_reg
+BEGIN A2.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD3.PIN             	1
+END
+
+// Signal Name: A2.LH
+// Type: Output_reg
+BEGIN A2.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A1.D
+// Type: Output_reg
+BEGIN A1.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD2.PIN             	1
+END
+
+// Signal Name: A1.LH
+// Type: Output_reg
+BEGIN A1.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: A0.D
+// Type: Output_reg
+BEGIN A0.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD1.PIN             	1
+END
+
+// Signal Name: A0.LH
+// Type: Output_reg
+BEGIN A0.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: N_19.D
+// Type: Node_reg
+BEGIN N_19.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		1
+Fanin Node      	N_19.Q              	1
+END
+
+// Signal Name: N_19.C
+// Type: Node_reg
+BEGIN N_19.C
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	ICLK.BLIF           	0
+END
+
+// Signal Name: N_23.D
+// Type: Node_reg
+BEGIN N_23.D
+Fanin Number		7
+Pterm Number		4
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		1
+Fanin Node      	N_25.Q              	4
+Fanin Node      	N_24.Q              	3
+Fanin Node      	N_23.Q              	4
+Fanin Node      	N_19.Q              	1
+Fanin Input     	ICLK.BLIF           	0
+Fanin Input     	SYNC.BLIF           	0
+Fanin Output    	RPLY.Q              	2
+END
+
+// Signal Name: N_23.C
+// Type: Node_reg
+BEGIN N_23.C
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	ICLK.BLIF           	0
+END
+
+// Signal Name: N_24.D
+// Type: Node_reg
+BEGIN N_24.D
+Fanin Number		4
+Pterm Number		3
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		1
+Fanin Node      	N_24.Q              	3
+Fanin Node      	N_23.Q              	4
+Fanin Input     	SYNC.BLIF           	0
+Fanin Output    	RPLY.Q              	2
+END
+
+// Signal Name: N_24.C
+// Type: Node_reg
+BEGIN N_24.C
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	ICLK.BLIF           	0
+END
+
+// Signal Name: N_25.D
+// Type: Node_reg
+BEGIN N_25.D
+Fanin Number		5
+Pterm Number		4
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		1
+Fanin Node      	N_25.Q              	4
+Fanin Node      	N_24.Q              	3
+Fanin Node      	N_23.Q              	4
+Fanin Input     	SYNC.BLIF           	0
+Fanin Output    	RPLY.Q              	2
+END
+
+// Signal Name: N_25.C
+// Type: Node_reg
+BEGIN N_25.C
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	ICLK.BLIF           	0
+END
+
+// Signal Name: N_12
+// Type: Node
+BEGIN N_12
+Fanin Number		5
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Node      	N_15.Q              	1
+Fanin Node      	N_16.Q              	1
+Fanin Node      	N_18.Q              	1
+Fanin Input     	CE3.BLIF            	0
+Fanin Input     	CE0.BLIF            	0
+END
+
+// Signal Name: N_14.D
+// Type: Node_reg
+BEGIN N_14.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD12.PIN            	1
+END
+
+// Signal Name: N_14.LH
+// Type: Node_reg
+BEGIN N_14.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: N_15.D
+// Type: Node_reg
+BEGIN N_15.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD13.PIN            	1
+END
+
+// Signal Name: N_15.LH
+// Type: Node_reg
+BEGIN N_15.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: N_16.D
+// Type: Node_reg
+BEGIN N_16.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD15.PIN            	1
+END
+
+// Signal Name: N_16.LH
+// Type: Node_reg
+BEGIN N_16.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Signal Name: N_18.D
+// Type: Node_reg
+BEGIN N_18.D
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Output    	AD14.PIN            	1
+END
+
+// Signal Name: N_18.LH
+// Type: Node_reg
+BEGIN N_18.LH
+Fanin Number		1
+Pterm Number		1
+Fanin per Macrocell	N/A
+Cluster PT		N/A
+Logic Levels		N/A
+Fanin Input     	SYNC.BLIF           	0
+END
+
+// Design 'top' used clock signal list:
+CLOCK	ICLK
+

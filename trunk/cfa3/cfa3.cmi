@@ -1,0 +1,58 @@
+[WINDOWS]
+MAIN_WINDOW_POSITION=0,0,2560,1473
+LEFT_PANE_WIDTH=850
+CHILD_FRAME_STATE=Maximal
+CHILD_WINDOW_SIZE=2560,1249
+CHILD_WINDOW_POS=-4,-23
+[GUI SETTING]
+Remember_Setting=1
+Open_PV_Opt=2
+Open_PV=0
+PV_IS_ACTIVE=0
+ACTIVE_SHEET=Pin Attributes
+Show_Def_Opt=2
+Show_Def_Val=1
+Expand_All_Column=0
+Show_All_Signals=0
+Sort_Type=0
+Sort_Direction=0
+Skip_Next_Pin=0
+[Pin Attributes]
+Type=40,no
+Signal/Group Name=120,no
+Group Members=100,no
+GLB=33,no
+Macrocell=65,no
+Pin=29,no
+Bank=39,no
+IO Types=123,no
+Slewrate=62,no
+Fast bypass=81,no
+Orp bypass=77,no
+Input registers=98,no
+Register powerup=113,no
+[Nodal Constraints]
+Type=40,no
+Signal/Group Name=120,no
+Max_pterm_collapse=128,no
+Max_pterm_split=106,no
+Max_fanin=71,no
+Xor_synthesis=92,no
+Fmax_logic_level=109,no
+Clock_enable_optimization=163,no
+[Global Constraints]
+Constraint Name=107,no
+Constraint Value=107,no
+[Resource Reservation]
+Segment=61,no
+GLB=33,no
+Macrocell=65,no
+Pin=29,no
+State=43,no
+IO Types=64,no
+[Timing Constraints]
+Timing Constraint type=142,no
+Source=51,no
+Destination=77,no
+Delay(ns)=67,no
+Frequency(MHz)=105,no

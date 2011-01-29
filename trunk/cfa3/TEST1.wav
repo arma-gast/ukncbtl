@@ -1,0 +1,18 @@
+;C:\hw\cfa3\TEST1.wav - Save data for Waveform Viewer
+
+
+[NameRules]
+Language=VHDL
+LeadingInstancePrefix=No
+InstanceSeparator=^
+BusParentheses=[:]
+
+[Waves]
+Count=4
+Net0=SYNC
+Net1=REPLY
+Net2=CLOCK
+Net3=RESET
+
+[Triggers]
+Count=0
