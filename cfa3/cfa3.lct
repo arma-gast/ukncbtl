@@ -1,0 +1,240 @@
+
+[Device]
+Family = lc4k;
+PartNumber = LC4064V-75T100C;
+Package = 100TQFP;
+PartType = LC4064V;
+Speed = -7.5;
+Operating_condition = COM;
+Status = Production;
+EN_PinGLB = yes;
+EN_PinMacrocell = yes;
+
+[Revision]
+Parent = lc4k64v.lci;
+DATE = 01/28/2011;
+TIME = 21:30:14;
+Source_Format = ABEL_Schematic;
+Synthesis = Synplify;
+
+[Ignore Assignments]
+
+[Clear Assignments]
+
+[Backannotate Assignments]
+
+[Global Constraints]
+
+[Location Assignments]
+layer = OFF;
+AD0 = Pin, -, -, A, *;
+AD1 = Pin, -, -, A, *;
+AD2 = Pin, -, -, A, *;
+AD3 = Pin, -, -, A, *;
+AD4 = Pin, -, -, A, *;
+AD5 = Pin, -, -, A, *;
+AD6 = Pin, -, -, A, *;
+AD7 = Pin, -, -, A, *;
+AD8 = Pin, -, -, A, *;
+AD9 = Pin, -, -, A, *;
+AD10 = Pin, -, -, A, *;
+AD11 = Pin, -, -, A, *;
+AD12 = Pin, -, -, A, *;
+AD13 = Pin, -, -, A, *;
+AD14 = Pin, -, -, A, *;
+AD15 = Pin, -, -, A, *;
+D0 = Pin, -, -, B, *;
+D1 = Pin, -, -, B, *;
+D2 = Pin, -, -, B, *;
+D3 = Pin, -, -, B, *;
+D4 = Pin, -, -, B, *;
+D5 = Pin, -, -, B, *;
+D6 = Pin, -, -, B, *;
+D7 = Pin, -, -, B, *;
+D8 = Pin, -, -, B, *;
+D9 = Pin, -, -, B, *;
+D10 = Pin, -, -, B, *;
+D11 = Pin, -, -, B, *;
+D12 = Pin, -, -, B, *;
+D13 = Pin, -, -, B, *;
+D14 = Pin, -, -, B, *;
+D15 = Pin, -, -, B, *;
+A0 = Pin, -, -, C, *;
+A1 = Pin, -, -, C, *;
+A2 = Pin, -, -, C, *;
+A3 = Pin, -, -, C, *;
+A4 = Pin, -, -, C, *;
+A5 = Pin, -, -, C, *;
+A6 = Pin, -, -, C, *;
+A7 = Pin, -, -, C, *;
+A8 = Pin, -, -, C, *;
+A9 = Pin, -, -, C, *;
+A10 = Pin, -, -, C, *;
+FLASH_CS = Pin, -, -, C, *;
+IDE_CS = Pin, -, -, C, *;
+RD = Pin, -, -, C, *;
+RPLY = Pin, -, -, C, *;
+WR = Pin, -, -, C, *;
+CE0 = Pin, 12, 0, -, -;
+CE3 = Pin, 23, 1, -, -;
+DIN = Pin, 27, 2, -, -;
+DOUT = Pin, 62, 3, -, -;
+ICLK = Pin, 38, -, -, -;
+SYNC = Pin, 77, 5, -, -;
+
+[Group Assignments]
+layer = OFF;
+
+[Resource Reservations]
+layer = OFF;
+
+[Fitter Report Format]
+
+[Power]
+
+[Source Constraint Option]
+
+[Fast Bypass]
+
+[OSM Bypass]
+
+[Input Registers]
+
+[Netlist/Delay Format]
+
+[IO Types]
+layer = OFF;
+AD0 = LVCMOS33_OD, PIN, -, -;
+AD1 = LVCMOS33_OD, PIN, -, -;
+AD2 = LVCMOS33_OD, PIN, -, -;
+AD3 = LVCMOS33_OD, PIN, -, -;
+AD4 = LVCMOS33_OD, PIN, -, -;
+AD5 = LVCMOS33_OD, PIN, -, -;
+AD6 = LVCMOS33_OD, PIN, -, -;
+AD7 = LVCMOS33_OD, PIN, -, -;
+AD8 = LVCMOS33_OD, PIN, -, -;
+AD9 = LVCMOS33_OD, PIN, -, -;
+AD10 = LVCMOS33_OD, PIN, -, -;
+AD11 = LVCMOS33_OD, PIN, -, -;
+AD12 = LVCMOS33_OD, PIN, -, -;
+AD13 = LVCMOS33_OD, PIN, -, -;
+AD14 = LVCMOS33_OD, PIN, -, -;
+AD15 = LVCMOS33_OD, PIN, -, -;
+D0 = LVCMOS33, PIN, -, -;
+D1 = LVCMOS33, PIN, -, -;
+D2 = LVCMOS33, PIN, -, -;
+D3 = LVCMOS33, PIN, -, -;
+D4 = LVCMOS33, PIN, -, -;
+D5 = LVCMOS33, PIN, -, -;
+D6 = LVCMOS33, PIN, -, -;
+D7 = LVCMOS33, PIN, -, -;
+D8 = LVCMOS33, PIN, -, -;
+D9 = LVCMOS33, PIN, -, -;
+D10 = LVCMOS33, PIN, -, -;
+D11 = LVCMOS33, PIN, -, -;
+D12 = LVCMOS33, PIN, -, -;
+D13 = LVCMOS33, PIN, -, -;
+D14 = LVCMOS33, PIN, -, -;
+D15 = LVCMOS33, PIN, -, -;
+A0 = LVCMOS33, PIN, -, -;
+A1 = LVCMOS33, PIN, -, -;
+A2 = LVCMOS33, PIN, -, -;
+A3 = LVCMOS33, PIN, -, -;
+A4 = LVCMOS33, PIN, -, -;
+A5 = LVCMOS33, PIN, -, -;
+A6 = LVCMOS33, PIN, -, -;
+A7 = LVCMOS33, PIN, -, -;
+A8 = LVCMOS33, PIN, -, -;
+A9 = LVCMOS33, PIN, -, -;
+A10 = LVCMOS33, PIN, -, -;
+FLASH_CS = LVCMOS33, PIN, -, -;
+IDE_CS = LVCMOS33, PIN, -, -;
+RD = LVCMOS33, PIN, -, -;
+RPLY = LVCMOS33_OD, PIN, -, -;
+WR = LVCMOS33, PIN, -, -;
+CE0 = LVCMOS33_5V, PIN, 0, -;
+CE3 = LVCMOS33_5V, PIN, 0, -;
+DIN = LVCMOS33_5V, PIN, 0, -;
+DOUT = LVCMOS33_5V, PIN, 1, -;
+ICLK = LVCMOS33_5V, PIN, 0, -;
+SYNC = LVCMOS33_5V, PIN, 1, -;
+
+[Pullup]
+
+[Slewrate]
+FAST = AD0, AD1, AD2, AD3, AD4, AD5, AD6, AD7, AD8, AD9, AD10, AD11, AD12, AD13, 
+	AD14, AD15, D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, 
+	D14, D15, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, FLASH_CS, IDE_CS, 
+	RD, RPLY, WR;
+
+[Region]
+
+[Timing Constraints]
+layer = OFF;
+
+[HSI Attributes]
+
+[Input Delay]
+
+[opt global constraints list]
+
+[Explorer User Settings]
+
+[Pin attributes list]
+
+[global constraints list]
+
+[Global Constraints Process Update]
+
+[pin lock limitation]
+
+[LOCATION ASSIGNMENTS LIST]
+
+[RESOURCE RESERVATIONS LIST]
+
+[individual constraints list]
+
+[Attributes list setting]
+
+[Timing Analyzer]
+
+[PLL Assignments]
+
+[Dual Function Macrocell]
+
+[Explorer Results]
+
+[VHDL synplify constraints]
+
+[VHDL spectrum constraints]
+
+[verilog synplify constraints]
+
+[verilog spectrum constraints]
+
+[VHDL synplify constraints list]
+
+[VHDL spectrum constraints list]
+
+[verilog synplify constraints list]
+
+[verilog spectrum constraints list]
+
+[ORP Bypass]
+
+[Register Powerup]
+
+[Constraint Version]
+version = 1.0;
+
+[ORP ASSIGNMENTS]
+layer = OFF;
+
+[Node attribute]
+layer = OFF;
+
+[SYMBOL/MODULE attribute]
+layer = OFF;
+
+[Nodal Constraints]
+layer = OFF;

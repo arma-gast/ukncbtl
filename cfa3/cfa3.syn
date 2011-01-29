@@ -1,0 +1,12 @@
+JDF B
+// Created by Version 1.4 
+PROJECT cfa3
+DESIGN cfa3 Normal
+DEVKIT LC4064V-75T100C
+ENTRY ABEL/Schematic
+MODULE top.sch
+MODSTYLE top Normal
+STIMULUS top testform.wdl
+SYNTHESIS_TOOL Synplify
+SIMULATOR_TOOL ActiveHDL
+TOPMODULE top

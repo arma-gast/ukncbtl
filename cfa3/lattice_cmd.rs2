@@ -1,0 +1,1 @@
+-nodal -src cfa3.bl5 -type BLIF -presrc cfa3.bl3 -crf cfa3.crf -sif cfa3.sif -devfile "C:/isptools/ispcpld/dat/lc4k/m4s_64_64.dev" -lci cfa3.lct
