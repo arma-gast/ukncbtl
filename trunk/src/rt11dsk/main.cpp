@@ -4,130 +4,7 @@
 #include "stdafx.h"
 #include "diskimage.h"
 #include "rad50.h"
-
-
-//////////////////////////////////////////////////////////////////////
-// Структуры данных, представляющие информацию о томе RT-11
-
-/* Types for rtFileEntry 'status' */
-#define RT11_STATUS_TENTATIVE   256     /* Temporary file */
-#define RT11_STATUS_EMPTY       512     /* Marks empty space */
-#define RT11_STATUS_PERM        1024    /* A "real" file */
-#define RT11_STATUS_ENDMARK     2048    /* Marks the end of file entries */
-
-struct CVolumeCatalogEntry;
-struct CVolumeCatalogSegment;
-
-// Структура для хранения информации о томе
-struct CVolumeInformation
-{
-    char volumeid[13];
-    char ownername[13];
-    char systemid[13];
-    WORD firstcatalogblock;
-    WORD systemversion;
-    WORD catalogextrawords;
-    WORD catalogentrylength;
-    WORD catalogentriespersegment;
-    WORD catalogsegmentcount;
-    WORD lastopenedsegment;
-    // Массив сегментов
-    CVolumeCatalogSegment* catalogsegments;
-    WORD catalogentriescount;  // Количество валидных записей каталога, включая завершающую ENDMARK
-};
-
-// Структура данных для сегмента каталога
-struct CVolumeCatalogSegment
-{
-public:
-    WORD segmentblock;  // Блок на диске, в котором расположен этот сегмент каталога
-    WORD entriesused;   // Количество использованых записей каталога
-public:
-    WORD nextsegment;   // Номер следующего сегмента
-    WORD start;         // Номер блока, с которого начинаются файлы этого сегмента
-    // Массив записей каталога, размером в максимально возможное кол-во записей для этого сегмента
-    CVolumeCatalogEntry* catalogentries;
-};
-
-// Структура для хранения разобранной строки каталога
-struct CVolumeCatalogEntry
-{
-public:  // Упакованные поля записи
-    WORD status;    // See RT11_STATUS_xxx constants
-    WORD datepac;   // Упакованное поле даты
-    WORD start;     // File start block number
-    WORD length;    // File length in 512-byte blocks
-public:  // Распакованные поля записи
-    TCHAR name[7];  // File name - 6 characters
-    TCHAR ext[4];   // File extension - 3 characters
-
-public:
-    CVolumeCatalogEntry();
-    void Unpack(WORD const * pSrc, WORD filestartblock);  // Распаковка записи из каталога
-    void Pack(WORD* pDest);   // Упаковка записи в каталог
-    void Print();  // Печать строки каталога на консоль
-};
-
-CVolumeCatalogEntry::CVolumeCatalogEntry()
-{
-    status = 0;
-    memset(name, 0, sizeof(name));
-    memset(ext, 0, sizeof(ext));
-    start = length = 0;
-}
-
-void CVolumeCatalogEntry::Unpack(WORD const * pCatalog, WORD filestartblock)
-{
-    start = filestartblock;
-    status = pCatalog[0];
-    WORD namerad50[3];
-    namerad50[0] = pCatalog[1];
-    namerad50[1] = pCatalog[2];
-    namerad50[2] = pCatalog[3];
-    length  = pCatalog[4];
-    datepac = pCatalog[6];
-
-    if (status != RT11_STATUS_EMPTY && status != RT11_STATUS_ENDMARK)
-    {
-        r50asc(6, namerad50, name);
-        name[6] = 0;
-        r50asc(3, namerad50 + 2, ext);
-        ext[3] = 0;
-    }
-}
-
-void CVolumeCatalogEntry::Pack(WORD* pCatalog)
-{
-    pCatalog[0] = status;
-    if (status == RT11_STATUS_EMPTY || status == RT11_STATUS_ENDMARK)
-    {
-        memset(pCatalog + 1, 0, sizeof(WORD) * 3);
-    }
-    else
-    {
-        WORD namerad50[3];
-        irad50(6, name, namerad50);
-        irad50(3, ext,  namerad50 + 2);
-        memcpy(pCatalog + 1, namerad50, sizeof(namerad50));
-    }
-    pCatalog[4] = length;
-    pCatalog[5] = 0;  // Used only for tentative files
-    pCatalog[6] = datepac;
-}
-
-void CVolumeCatalogEntry::Print()
-{
-    if (status == RT11_STATUS_EMPTY)
-        wprintf(_T("< UNUSED >  %5d            %5d %8d\n"),
-                length, start, length * RT11_BLOCK_SIZE);
-    else
-    {
-        TCHAR datestr[10];
-        rtDateStr(datepac, datestr);
-        wprintf(_T("%s.%s  %5d  %s %5d %8d\n"),
-                name, ext, length, datestr, start, length * RT11_BLOCK_SIZE);
-    }
-}
+#include "hardimage.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -144,6 +21,7 @@ void PrepareTrack(int nSide, int nTrack);
 void DoPrintCatalogDirectory();
 void DoExtractFile();
 bool DoAddFile();
+bool DoHardList();
 void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
 
 
@@ -153,8 +31,10 @@ void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
 LPCTSTR g_sCommand = NULL;
 LPCTSTR g_sImageFileName = NULL;
 LPCTSTR g_sFileName = NULL;
+bool    g_okHardCommand = false;
 
 CDiskImage g_diskimage;
+CHardImage g_hardimage;
 CVolumeInformation g_volumeinfo;
 WORD g_segmentBuffer[512];
 
@@ -172,11 +52,18 @@ int _tmain(int argc, _TCHAR* argv[])
     }
 
     // Подключение к файлу образа
-    if (!g_diskimage.Attach(g_sImageFileName))
-        return 255;
-
-    // Разбор Home Block и чтение каталога диска
-    DecodeImageCatalog();
+    if (g_okHardCommand)
+    {
+        if (!g_hardimage.Attach(g_sImageFileName))
+            return 255;
+    }
+    else
+    {
+        if (!g_diskimage.Attach(g_sImageFileName))
+            return 255;
+        // Разбор Home Block и чтение каталога диска
+        DecodeImageCatalog();
+    }
 
     // Main task
     if (g_sCommand[0] == _T('l'))
@@ -185,6 +72,8 @@ int _tmain(int argc, _TCHAR* argv[])
         DoExtractFile();
     else if (g_sCommand[0] == _T('a'))
         DoAddFile();
+    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('l'))
+        DoHardList();
 
     // Завершение работы с файлом
     FreeImageCatalog();
@@ -230,6 +119,22 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
     {
         wprintf(_T("Command not specified.\n"));
         return false;
+    }
+    if (g_sCommand[0] == _T('h'))
+    {
+        g_okHardCommand = true;
+        if (g_sCommand[1] == 0)
+        {
+            wprintf(_T("H-command not specified.\n"));
+            return false;
+        }
+        if (g_sCommand[1] != _T('l'))
+        {
+            wprintf(_T("Unknown H-command: %s.\n"), g_sCommand);
+            return false;
+        }
+
+        return true;
     }
     if (g_sCommand[0] != _T('l') && g_sCommand[0] != _T('e') && g_sCommand[0] != _T('a'))
     {
@@ -700,6 +605,13 @@ void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
     g_diskimage.MarkBlockChanged(pSegment->segmentblock);
     memcpy(pBlock2, g_segmentBuffer + 256, 512);
     g_diskimage.MarkBlockChanged(pSegment->segmentblock + 1);
+}
+
+bool DoHardList()
+{
+    g_hardimage.PrintPartitionTable();
+
+    return true;
 }
 
 

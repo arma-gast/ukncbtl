@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "diskimage.h"
+#include "rad50.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -18,7 +19,7 @@ struct CCachedBlock
 
 CDiskImage::CDiskImage()
 {
-    m_okReadOnly = m_okNetRT11Image = FALSE;
+    m_okReadOnly = m_okNetRT11Image = false;
     m_fpFile = NULL;
     m_nTotalBlocks = m_nCacheBlocks = 0;
     m_pCache = NULL;
@@ -203,6 +204,71 @@ void CDiskImage::MarkBlockChanged(int nBlock)
         m_pCache[i].bChanged = TRUE;
         m_pCache[i].dwLastUsage = ::GetTickCount();
         break;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+CVolumeCatalogEntry::CVolumeCatalogEntry()
+{
+    status = 0;
+    memset(name, 0, sizeof(name));
+    memset(ext, 0, sizeof(ext));
+    start = length = 0;
+}
+
+void CVolumeCatalogEntry::Unpack(WORD const * pCatalog, WORD filestartblock)
+{
+    start = filestartblock;
+    status = pCatalog[0];
+    WORD namerad50[3];
+    namerad50[0] = pCatalog[1];
+    namerad50[1] = pCatalog[2];
+    namerad50[2] = pCatalog[3];
+    length  = pCatalog[4];
+    datepac = pCatalog[6];
+
+    if (status != RT11_STATUS_EMPTY && status != RT11_STATUS_ENDMARK)
+    {
+        r50asc(6, namerad50, name);
+        name[6] = 0;
+        r50asc(3, namerad50 + 2, ext);
+        ext[3] = 0;
+    }
+}
+
+void CVolumeCatalogEntry::Pack(WORD* pCatalog)
+{
+    pCatalog[0] = status;
+    if (status == RT11_STATUS_EMPTY || status == RT11_STATUS_ENDMARK)
+    {
+        memset(pCatalog + 1, 0, sizeof(WORD) * 3);
+    }
+    else
+    {
+        WORD namerad50[3];
+        irad50(6, name, namerad50);
+        irad50(3, ext,  namerad50 + 2);
+        memcpy(pCatalog + 1, namerad50, sizeof(namerad50));
+    }
+    pCatalog[4] = length;
+    pCatalog[5] = 0;  // Used only for tentative files
+    pCatalog[6] = datepac;
+}
+
+void CVolumeCatalogEntry::Print()
+{
+    if (status == RT11_STATUS_EMPTY)
+        wprintf(_T("< UNUSED >  %5d            %5d %8d\n"),
+                length, start, length * RT11_BLOCK_SIZE);
+    else
+    {
+        TCHAR datestr[10];
+        rtDateStr(datepac, datestr);
+        wprintf(_T("%s.%s  %5d  %s %5d %8d\n"),
+                name, ext, length, datestr, start, length * RT11_BLOCK_SIZE);
     }
 }
 
