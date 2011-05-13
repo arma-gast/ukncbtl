@@ -8,8 +8,8 @@
 struct CCachedBlock
 {
     int     nBlock;
-    BYTE*   pData;
-    BOOL    bChanged;
+    void*   pData;
+    bool    bChanged;
     DWORD   dwLastUsage;  // GetTickCount() for last usage
 };
 
@@ -19,7 +19,7 @@ struct CCachedBlock
 CDiskImage::CDiskImage()
 {
     m_okReadOnly = m_okNetRT11Image = FALSE;
-    m_hFile = INVALID_HANDLE_VALUE;
+    m_fpFile = NULL;
     m_nTotalBlocks = m_nCacheBlocks = 0;
     m_pCache = NULL;
 }
@@ -29,36 +29,34 @@ CDiskImage::~CDiskImage()
     Detach();
 }
 
-BOOL CDiskImage::Attach(LPCTSTR sImageFileName)
+bool CDiskImage::Attach(LPCTSTR sImageFileName)
 {
     // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
     LPCTSTR sImageFilenameExt = wcsrchr(sImageFileName, _T('.'));
     if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
-        m_okNetRT11Image = TRUE;
+        m_okNetRT11Image = true;
 
     // Try to open as Normal first, then as ReadOnly
-    m_okReadOnly = FALSE;
-    m_hFile = ::CreateFile(sImageFileName,
-            GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (m_hFile == INVALID_HANDLE_VALUE)
+    m_okReadOnly = false;
+    m_fpFile = ::_wfopen(sImageFileName, _T("r+b"));
+    if (m_fpFile == NULL)
     {
-        m_okReadOnly = TRUE;
-        m_hFile = ::CreateFile(sImageFileName,
-                GENERIC_READ, FILE_SHARE_READ, NULL,
-                OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
-        if (m_hFile == INVALID_HANDLE_VALUE)
-            return FALSE;
+        m_okReadOnly = true;
+        m_fpFile = ::_wfopen(sImageFileName, _T("rb"));
+        if (m_fpFile == NULL)
+            return true;
     }
 
     // Calculate m_TotalBlocks
-    DWORD dwFileSize = ::GetFileSize(m_hFile, NULL);
-    m_nTotalBlocks = dwFileSize / RT11_BLOCK_SIZE;
+    ::fseek(m_fpFile, 0, SEEK_END);
+    long lFileSize = ::ftell(m_fpFile);
+    m_nTotalBlocks = lFileSize / RT11_BLOCK_SIZE;
 
     // Allocate memory for the cache
     m_nCacheBlocks = 1024;  //NOTE: For up to 1024 blocks, for 512K of data
     if (m_nCacheBlocks > m_nTotalBlocks) m_nCacheBlocks = m_nTotalBlocks;
-    m_pCache = (CCachedBlock*) ::LocalAlloc(LPTR, m_nCacheBlocks * sizeof(CCachedBlock));
+    m_pCache = (CCachedBlock*) ::malloc(m_nCacheBlocks * sizeof(CCachedBlock));
+    ::memset(m_pCache, 0, m_nCacheBlocks * sizeof(CCachedBlock));
 
     // Initial read: fill half of the cache
     int nBlocks = 10;
@@ -67,32 +65,32 @@ BOOL CDiskImage::Attach(LPCTSTR sImageFileName)
         GetBlock(i);
     }
 
-    return TRUE;
+    return true;
 }
 
 void CDiskImage::Detach()
 {
-    if (m_hFile != INVALID_HANDLE_VALUE)
+    if (m_fpFile != NULL)
     {
         FlushChanges();
 
-        ::CloseHandle(m_hFile);
-        m_hFile = INVALID_HANDLE_VALUE;
+        ::fclose(m_fpFile);
+        m_fpFile = NULL;
 
         // Free cached blocks data
         for (int i = 0; i < m_nCacheBlocks; i++)
         {
             if (m_pCache[i].pData != NULL)
-                ::LocalFree(m_pCache[i].pData);
+                ::free(m_pCache[i].pData);
         }
 
-        ::LocalFree(m_pCache);
+        ::free(m_pCache);
     }
 }
 
-LONG CDiskImage::GetBlockOffset(int nBlock) const
+long CDiskImage::GetBlockOffset(int nBlock) const
 {
-    LONG foffset = ((LONG)nBlock) * RT11_BLOCK_SIZE;
+    long foffset = ((long)nBlock) * RT11_BLOCK_SIZE;
     if (m_okNetRT11Image) foffset += NETRT11_IMAGE_HEADER_SIZE;
     return foffset;
 }
@@ -105,25 +103,23 @@ void CDiskImage::FlushChanges()
 
         // Вычисляем смещение в файле образа
         long foffset = GetBlockOffset(m_pCache[i].nBlock);
-        ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
+        ::fseek(m_fpFile, foffset, SEEK_SET);
 
         // Записываем блок
-        ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
-        DWORD dwBytesWritten;
-        ::WriteFile(m_hFile, m_pCache[i].pData, RT11_BLOCK_SIZE, &dwBytesWritten, NULL);
-        if (dwBytesWritten != RT11_BLOCK_SIZE)
+        long lBytesWritten = ::fwrite(m_pCache[i].pData, 1, RT11_BLOCK_SIZE, m_fpFile);
+        if (lBytesWritten != RT11_BLOCK_SIZE)
         {
             wprintf(_T("Failed to write block number %d.\n"), m_pCache[i].nBlock);
             _exit(-1);
         }
 
-        m_pCache[i].bChanged = FALSE;
+        m_pCache[i].bChanged = false;
     }
 }
 
 // Каждый блок - 256 слов, 512 байт
 // nBlock = 1..???
-BYTE* CDiskImage::GetBlock(int nBlock)
+void* CDiskImage::GetBlock(int nBlock)
 {
     // First lookup the cache
     for (int i = 0; i < m_nCacheBlocks; i++)
@@ -166,10 +162,10 @@ BYTE* CDiskImage::GetBlock(int nBlock)
         }
         if (iCand != -1)  // Found
         {
-            ::LocalFree(m_pCache[iEmpty].pData);
+            ::free(m_pCache[iEmpty].pData);
             m_pCache[iEmpty].pData = NULL;
             m_pCache[iEmpty].nBlock = 0;
-            m_pCache[iEmpty].bChanged = FALSE;
+            m_pCache[iEmpty].bChanged = false;
         }
     }
 
@@ -180,16 +176,16 @@ BYTE* CDiskImage::GetBlock(int nBlock)
     }
 
     m_pCache[iEmpty].nBlock = nBlock;
-    m_pCache[iEmpty].bChanged = FALSE;
-    m_pCache[iEmpty].pData = (BYTE*) ::LocalAlloc(LPTR, RT11_BLOCK_SIZE);
+    m_pCache[iEmpty].bChanged = false;
+    m_pCache[iEmpty].pData = ::malloc(RT11_BLOCK_SIZE);
+    ::memset(m_pCache[iEmpty].pData, 0, RT11_BLOCK_SIZE);
     m_pCache[iEmpty].dwLastUsage = ::GetTickCount();
 
     // Load the block data
-    LONG foffset = GetBlockOffset(nBlock);
-    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
-    DWORD dwBytesRead;
-    ::ReadFile(m_hFile, m_pCache[iEmpty].pData, RT11_BLOCK_SIZE, &dwBytesRead, NULL);
-    if (dwBytesRead != RT11_BLOCK_SIZE)
+    long foffset = GetBlockOffset(nBlock);
+    ::fseek(m_fpFile, foffset, SEEK_SET);
+    long lBytesRead = ::fread(m_pCache[iEmpty].pData, 1, RT11_BLOCK_SIZE, m_fpFile);
+    if (lBytesRead != RT11_BLOCK_SIZE)
     {
         wprintf(_T("Failed to read block number %d.\n"), nBlock);
         _exit(-1);

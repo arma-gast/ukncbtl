@@ -134,7 +134,7 @@ void CVolumeCatalogEntry::Print()
 // Предварительные объявления функций программы
 
 void PrintWelcome();
-BOOL ParseCommandLine(int argc, _TCHAR* argv[]);
+bool ParseCommandLine(int argc, _TCHAR* argv[]);
 void PrintUsage();
 void PrintTableHeader();
 void PrintTableFooter();
@@ -143,7 +143,7 @@ void FreeImageCatalog();
 void PrepareTrack(int nSide, int nTrack);
 void DoPrintCatalogDirectory();
 void DoExtractFile();
-BOOL DoAddFile();
+bool DoAddFile();
 void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
 
 
@@ -198,7 +198,7 @@ void PrintWelcome()
     wprintf(_T("RT11DSK Utility  by Nikita Zimin  [%S %S]\n\n"), __DATE__, __TIME__);
 }
 
-BOOL ParseCommandLine(int argc, _TCHAR* argv[])
+bool ParseCommandLine(int argc, _TCHAR* argv[])
 {
     for (int argn = 1; argn < argc; argn++)
     {
@@ -207,7 +207,7 @@ BOOL ParseCommandLine(int argc, _TCHAR* argv[])
         {
             //TODO
             wprintf(_T("Unknown option: %s\n"), arg);
-            return FALSE;
+            return false;
         }
         else
         {
@@ -220,7 +220,7 @@ BOOL ParseCommandLine(int argc, _TCHAR* argv[])
             else
             {
                 wprintf(_T("Unknown param: %s\n"), arg);
-                return FALSE;
+                return false;
             }
         }
     }
@@ -229,20 +229,20 @@ BOOL ParseCommandLine(int argc, _TCHAR* argv[])
     if (g_sCommand == NULL)
     {
         wprintf(_T("Command not specified.\n"));
-        return FALSE;
+        return false;
     }
     if (g_sCommand[0] != _T('l') && g_sCommand[0] != _T('e') && g_sCommand[0] != _T('a'))
     {
         wprintf(_T("Unknown command: %s.\n"), g_sCommand);
-        return FALSE;
+        return false;
     }
     if (g_sImageFileName == NULL)
     {
         wprintf(_T("Image file not specified.\n"));
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 void PrintUsage()
@@ -273,7 +273,7 @@ void DecodeImageCatalog()
     memset(&g_volumeinfo, 0, sizeof(g_volumeinfo));
 
     // Разбор Home Block
-    BYTE* pHomeSector = g_diskimage.GetBlock(1);
+    BYTE* pHomeSector = (BYTE*) g_diskimage.GetBlock(1);
     WORD nFirstCatalogBlock = pHomeSector[0724];  // Это должен быть блок номер 6
     if (nFirstCatalogBlock == 0) nFirstCatalogBlock = 6;
     g_volumeinfo.firstcatalogblock = nFirstCatalogBlock;
@@ -286,9 +286,9 @@ void DecodeImageCatalog()
     strncpy_s(g_volumeinfo.systemid, 13, sSystemId, 12);
 
     // Разбор первого блока каталога
-    BYTE* pBlock1 = g_diskimage.GetBlock(nFirstCatalogBlock);
+    BYTE* pBlock1 = (BYTE*) g_diskimage.GetBlock(nFirstCatalogBlock);
     memcpy(g_segmentBuffer, pBlock1, 512);
-    BYTE* pBlock2 = g_diskimage.GetBlock(nFirstCatalogBlock + 1);
+    BYTE* pBlock2 = (BYTE*) g_diskimage.GetBlock(nFirstCatalogBlock + 1);
     memcpy(g_segmentBuffer + 256, pBlock2, 512);
     WORD* pCatalogSector = g_segmentBuffer;
     g_volumeinfo.catalogsegmentcount = pCatalogSector[0];
@@ -302,7 +302,7 @@ void DecodeImageCatalog()
     g_volumeinfo.catalogentriespersegment = nEntriesPerSegment;
 
     // Получаем память под список сегментов
-    g_volumeinfo.catalogsegments = (CVolumeCatalogSegment*) malloc(
+    g_volumeinfo.catalogsegments = (CVolumeCatalogSegment*) ::malloc(
         sizeof(CVolumeCatalogSegment) * g_volumeinfo.catalogsegmentcount);
     memset(g_volumeinfo.catalogsegments, 0,
         sizeof(CVolumeCatalogSegment) * g_volumeinfo.catalogsegmentcount);
@@ -327,7 +327,7 @@ void DecodeImageCatalog()
         //wprintf(_T("Next segment:           %d\n"), pSegment->nextsegment);
 
         // Выделяем память под записи сегмента
-        pSegment->catalogentries = (CVolumeCatalogEntry*) malloc(
+        pSegment->catalogentries = (CVolumeCatalogEntry*) ::malloc(
             sizeof(CVolumeCatalogEntry) * nEntriesPerSegment);
         memset(pSegment->catalogentries, 0,
             sizeof(CVolumeCatalogEntry) * nEntriesPerSegment);
@@ -357,9 +357,9 @@ void DecodeImageCatalog()
 
         // Переходим к следующему сегменту каталога
         nCatalogBlock = nFirstCatalogBlock + (pSegment->nextsegment - 1) * 2;
-        pBlock1 = g_diskimage.GetBlock(nCatalogBlock);
+        pBlock1 = (BYTE*) g_diskimage.GetBlock(nCatalogBlock);
         memcpy(g_segmentBuffer, pBlock1, 512);
-        pBlock2 = g_diskimage.GetBlock(nCatalogBlock + 1);
+        pBlock2 = (BYTE*) g_diskimage.GetBlock(nCatalogBlock + 1);
         memcpy(g_segmentBuffer + 256, pBlock2, 512);
         pCatalogSector = g_segmentBuffer;
         nCatalogSegmentNumber = pSegment->nextsegment;
@@ -371,7 +371,7 @@ void DecodeImageCatalog()
 
 void FreeImageCatalog()
 {
-    free(g_volumeinfo.catalogsegments);
+    ::free(g_volumeinfo.catalogsegments);
 }
 
 // Печать всего каталога диска
@@ -492,7 +492,7 @@ void DoExtractFile()
 
     for (WORD blockpos = 0; blockpos < filelength; blockpos++)
     {
-        BYTE* pData = g_diskimage.GetBlock(filestart + blockpos);
+        BYTE* pData = (BYTE*) g_diskimage.GetBlock(filestart + blockpos);
         size_t nBytesWritten = fwrite(pData, sizeof(BYTE), RT11_BLOCK_SIZE, foutput);
         //TODO: Check if nBytesWritten < RT11_BLOCK_SIZE
     }
@@ -512,26 +512,26 @@ void DoExtractFile()
 //   В файл образа прописываются блоки нового файла
 //NOTE: Пока НЕ обрабатываем ситуацию открытия нового блока каталога - выходим по ошибке
 //NOTE: Пока НЕ проверяем что файл с таким именем уже есть, и НЕ выдаем ошибки
-BOOL DoAddFile()
+bool DoAddFile()
 {
     // Parse g_sFileName
     LPCTSTR sFilenameExt = wcsrchr(g_sFileName, _T('.'));
     if (sFilenameExt == NULL)
     {
         wprintf(_T("Wrong filename format: %s\n"), g_sFileName);
-        return FALSE;
+        return false;
     }
     size_t nFilenameLength = sFilenameExt - g_sFileName;
     if (nFilenameLength == 0 || nFilenameLength > 6)
     {
         wprintf(_T("Wrong filename format: %s\n"), g_sFileName);
-        return FALSE;
+        return false;
     }
     size_t nFileextLength = wcslen(g_sFileName) - nFilenameLength - 1;
     if (nFileextLength == 0 || nFileextLength > 3)
     {
         wprintf(_T("Wrong filename format: %s\n"), g_sFileName);
-        return FALSE;
+        return false;
     }
     TCHAR filename[7];
     for (int i = 0; i < 6; i++) filename[i] = _T(' ');
@@ -545,37 +545,36 @@ BOOL DoAddFile()
     _wcsupr_s(fileext, 4);
 
     // Открываем помещаемый файл на чтение
-    HANDLE hFile = ::CreateFile(g_sFileName,
-            GENERIC_READ, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile == INVALID_HANDLE_VALUE)
+    FILE* fpFile = ::_wfopen(g_sFileName, _T("rb"));
+    if (fpFile == NULL)
     {
         wprintf(_T("Failed to open the file."));
-        return FALSE;
+        return false;
     }
 
     // Определяем длину файла, с учетом округления до полного блока
-    DWORD dwFileLength = ::GetFileSize(hFile, NULL);  // Точная длина файла
+    ::fseek(fpFile, 0, SEEK_END);
+    LONG lFileLength = ::ftell(fpFile);  // Точная длина файла
     WORD nFileSizeBlocks =  // Требуемая ширина свободного места в блоках
-        (WORD) (dwFileLength + RT11_BLOCK_SIZE - 1) / RT11_BLOCK_SIZE;
+        (WORD) (lFileLength + RT11_BLOCK_SIZE - 1) / RT11_BLOCK_SIZE;
     DWORD dwFileSize =  // Длина файла с учетом округления до полного блока
         ((DWORD) nFileSizeBlocks) * RT11_BLOCK_SIZE;
     //TODO: Проверка на файл нулевой длины
     //TODO: Проверка, не слишком ли длинный файл для этого тома
 
     // Выделяем память и считываем данные файла
-    PVOID pFileData = malloc(dwFileSize);
+    PVOID pFileData = ::malloc(dwFileSize);
     memset(pFileData, 0, dwFileSize);
-    DWORD dwBytesRead;
-    ::ReadFile(hFile, pFileData, dwFileLength, &dwBytesRead, NULL);
-    if (dwBytesRead != dwFileLength)
+    ::fseek(fpFile, 0, SEEK_SET);
+    LONG lBytesRead = ::fread(pFileData, 1, lFileLength, fpFile);
+    if (lBytesRead != lFileLength)
     {
         wprintf(_T("Failed to read the file.\n"));
         _exit(-1);
     }
-    ::CloseHandle(hFile);
+    ::fclose(fpFile);
 
-    wprintf(_T("File size is %ld bytes or %d blocks\n"), dwFileLength, nFileSizeBlocks);
+    wprintf(_T("File size is %ld bytes or %d blocks\n"), lFileLength, nFileSizeBlocks);
 
     // Перебираются все записи каталога, пока не будет найдена пустая запись длины >= dwFileLength
     //TODO: Выделить в отдельную функцию и искать наиболее подходящую запись, с минимальной разницей по длине
@@ -605,7 +604,7 @@ BOOL DoAddFile()
     {
         wprintf(_T("Empty catalog entry with %d or more blocks not found\n"), nFileSizeBlocks);
         free(pFileData);
-        return FALSE;
+        return false;
     }
     wprintf(_T("Found empty catalog entry with %d blocks:\n\n"), pFileEntry->length);
     PrintTableHeader();
@@ -622,7 +621,7 @@ BOOL DoAddFile()
         {
             wprintf(_T("New catalog segment needed - not implemented now, sorry.\n"));
             free(pFileData);
-            return FALSE;
+            return false;
         }
 
         // Сдвигаем записи сегмента начиная с пустой на одну вправо - освобождаем место под новую запись
@@ -659,7 +658,7 @@ BOOL DoAddFile()
     for (int block = 0; block < nFileSizeBlocks; block++)
     {
         BYTE* pFileBlockData = ((BYTE*) pFileData) + block * RT11_BLOCK_SIZE;
-        BYTE* pData = g_diskimage.GetBlock(nBlock);
+        BYTE* pData = (BYTE*) g_diskimage.GetBlock(nBlock);
         memcpy(pData, pFileBlockData, RT11_BLOCK_SIZE);
         // Сообщаем что блок был изменен
         g_diskimage.MarkBlockChanged(nBlock);
@@ -676,14 +675,14 @@ BOOL DoAddFile()
 
     wprintf(_T("\nDone.\n"));
 
-    return TRUE;
+    return true;
 }
 
 void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
 {
-    BYTE* pBlock1 = g_diskimage.GetBlock(pSegment->segmentblock);
+    BYTE* pBlock1 = (BYTE*) g_diskimage.GetBlock(pSegment->segmentblock);
     memcpy(g_segmentBuffer, pBlock1, 512);
-    BYTE* pBlock2 = g_diskimage.GetBlock(pSegment->segmentblock + 1);
+    BYTE* pBlock2 = (BYTE*) g_diskimage.GetBlock(pSegment->segmentblock + 1);
     memcpy(g_segmentBuffer + 256, pBlock2, 512);
     WORD* pData = g_segmentBuffer;
 
