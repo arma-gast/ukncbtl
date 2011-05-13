@@ -5,13 +5,23 @@
 
 //////////////////////////////////////////////////////////////////////
 
+struct CCachedBlock
+{
+    int     nBlock;
+    BYTE*   pData;
+    BOOL    bChanged;
+    DWORD   dwLastUsage;  // GetTickCount() for last usage
+};
+
+
+//////////////////////////////////////////////////////////////////////
 
 CDiskImage::CDiskImage()
 {
-    m_okNetRT11Image = FALSE;
+    m_okReadOnly = m_okNetRT11Image = FALSE;
     m_hFile = INVALID_HANDLE_VALUE;
-    m_nCurrentSide = -1;
-    m_nCurrentTrack = -1;
+    m_nTotalBlocks = m_nCacheBlocks = 0;
+    m_pCache = NULL;
 }
 
 CDiskImage::~CDiskImage()
@@ -22,16 +32,40 @@ CDiskImage::~CDiskImage()
 BOOL CDiskImage::Attach(LPCTSTR sImageFileName)
 {
     // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
-    m_okNetRT11Image = FALSE;
     LPCTSTR sImageFilenameExt = wcsrchr(sImageFileName, _T('.'));
     if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
         m_okNetRT11Image = TRUE;
 
+    // Try to open as Normal first, then as ReadOnly
+    m_okReadOnly = FALSE;
     m_hFile = ::CreateFile(sImageFileName,
             GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (m_hFile == INVALID_HANDLE_VALUE)
-        return FALSE;
+    {
+        m_okReadOnly = TRUE;
+        m_hFile = ::CreateFile(sImageFileName,
+                GENERIC_READ, FILE_SHARE_READ, NULL,
+                OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
+        if (m_hFile == INVALID_HANDLE_VALUE)
+            return FALSE;
+    }
+
+    // Calculate m_TotalBlocks
+    DWORD dwFileSize = ::GetFileSize(m_hFile, NULL);
+    m_nTotalBlocks = dwFileSize / RT11_BLOCK_SIZE;
+
+    // Allocate memory for the cache
+    m_nCacheBlocks = 1024;  //NOTE: For up to 1024 blocks, for 512K of data
+    if (m_nCacheBlocks > m_nTotalBlocks) m_nCacheBlocks = m_nTotalBlocks;
+    m_pCache = (CCachedBlock*) ::LocalAlloc(LPTR, m_nCacheBlocks * sizeof(CCachedBlock));
+
+    // Initial read: fill half of the cache
+    int nBlocks = 10;
+    for (int i = 1; i <= nBlocks; i++)
+    {
+        GetBlock(i);
+    }
 
     return TRUE;
 }
@@ -44,70 +78,136 @@ void CDiskImage::Detach()
 
         ::CloseHandle(m_hFile);
         m_hFile = INVALID_HANDLE_VALUE;
+
+        // Free cached blocks data
+        for (int i = 0; i < m_nCacheBlocks; i++)
+        {
+            if (m_pCache[i].pData != NULL)
+                ::LocalFree(m_pCache[i].pData);
+        }
+
+        ::LocalFree(m_pCache);
     }
 }
 
-// nSide = 0..1
-// nTrack = 0..79
-void CDiskImage::PrepareTrack(int nSide, int nTrack)
+LONG CDiskImage::GetBlockOffset(int nBlock) const
 {
-    if (m_nCurrentSide == nSide && m_nCurrentTrack == nTrack)
-        return;  // Повторного чтения не требуется
-
-    memset(m_TrackData, 0, RT11_TRACK_SIZE);
-
-    long foffset = long(nTrack * 2 + nSide) * RT11_TRACK_SIZE;  // File offset to read from
+    LONG foffset = ((LONG)nBlock) * RT11_BLOCK_SIZE;
     if (m_okNetRT11Image) foffset += NETRT11_IMAGE_HEADER_SIZE;
-    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
-
-    DWORD count;
-    ::ReadFile(m_hFile, m_TrackData, RT11_TRACK_SIZE, &count, NULL);
-    //TODO: Проверка на ошибки чтения
-
-    m_nCurrentSide = nSide;
-    m_nCurrentTrack = nTrack;
-    m_okTrackChanged = FALSE;
+    return foffset;
 }
 
 void CDiskImage::FlushChanges()
 {
-    if (!m_okTrackChanged) return;
+    for (int i = 0; i < m_nCacheBlocks; i++)
+    {
+        if (!m_pCache[i].bChanged) continue;
 
-    // Вычисляем смещение в файле образа - начало дорожки
-    long foffset = long(m_nCurrentTrack * 2 + m_nCurrentSide) * RT11_TRACK_SIZE;
-    if (m_okNetRT11Image) foffset += NETRT11_IMAGE_HEADER_SIZE;
-    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
+        // Вычисляем смещение в файле образа
+        long foffset = GetBlockOffset(m_pCache[i].nBlock);
+        ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
 
-    // Записываем дорожку
-    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
-    DWORD dwBytesWritten;
-    ::WriteFile(m_hFile, &m_TrackData, RT11_TRACK_SIZE, &dwBytesWritten, NULL);
-    //TODO: Проверка на ошибки записи
+        // Записываем блок
+        ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
+        DWORD dwBytesWritten;
+        ::WriteFile(m_hFile, m_pCache[i].pData, RT11_BLOCK_SIZE, &dwBytesWritten, NULL);
+        if (dwBytesWritten != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to write block number %d.\n"), m_pCache[i].nBlock);
+            _exit(-1);
+        }
 
-    m_okTrackChanged = FALSE;
+        m_pCache[i].bChanged = FALSE;
+    }
 }
 
-// Получение указателя на начало заданного сектора текущей дорожки
-// nSector = 1..10
-BYTE* CDiskImage::GetSector(int nSector)
-{
-    return m_TrackData + (nSector - 1) * RT11_BLOCK_SIZE;
-}
-
-// Переход к заданному блоку файла образа диска. Если нужно, выполняется чтение другой дорожки.
 // Каждый блок - 256 слов, 512 байт
-// Каждый track = 10 блоков
 // nBlock = 1..???
 BYTE* CDiskImage::GetBlock(int nBlock)
 {
-    int nTrackAndSide = nBlock / 10;
-    int nSector = nBlock % 10 + 1;
-    int nTrack = nTrackAndSide / 2;
-    int nSide = nTrackAndSide % 2;
+    // First lookup the cache
+    for (int i = 0; i < m_nCacheBlocks; i++)
+    {
+        if (m_pCache[i].nBlock == nBlock)
+        {
+            m_pCache[i].dwLastUsage = ::GetTickCount();
+            return m_pCache[i].pData;
+        }
+    }
 
-    PrepareTrack(nSide, nTrack);
+    // Find a free cache slot
+    int iEmpty = -1;
+    for (int i = 0; i < m_nCacheBlocks; i++)
+    {
+        if (m_pCache[i].nBlock == 0)
+        {
+            iEmpty = i;
+            break;
+        }
+    }
 
-    return GetSector(nSector);
+    // If a free slot not found then release a slot
+    if (iEmpty == -1)
+    {
+        // Find a non-changed cached block with oldest usage time
+        int iCand = -1;
+        DWORD maxdiff = 0;
+        for (int i = 0; i < m_nCacheBlocks; i++)
+        {
+            if (!m_pCache[i].bChanged)
+            {
+                DWORD diff = GetTickCount() - m_pCache[i].dwLastUsage;
+                if (diff > maxdiff)
+                {
+                    maxdiff = diff;
+                    iCand = i;
+                }
+            }
+        }
+        if (iCand != -1)  // Found
+        {
+            ::LocalFree(m_pCache[iEmpty].pData);
+            m_pCache[iEmpty].pData = NULL;
+            m_pCache[iEmpty].nBlock = 0;
+            m_pCache[iEmpty].bChanged = FALSE;
+        }
+    }
+
+    if (iEmpty == -1)
+    {
+        wprintf(_T("Cache is full.\n"));
+        _exit(-1);
+    }
+
+    m_pCache[iEmpty].nBlock = nBlock;
+    m_pCache[iEmpty].bChanged = FALSE;
+    m_pCache[iEmpty].pData = (BYTE*) ::LocalAlloc(LPTR, RT11_BLOCK_SIZE);
+    m_pCache[iEmpty].dwLastUsage = ::GetTickCount();
+
+    // Load the block data
+    LONG foffset = GetBlockOffset(nBlock);
+    ::SetFilePointer(m_hFile, foffset, NULL, FILE_BEGIN);
+    DWORD dwBytesRead;
+    ::ReadFile(m_hFile, m_pCache[iEmpty].pData, RT11_BLOCK_SIZE, &dwBytesRead, NULL);
+    if (dwBytesRead != RT11_BLOCK_SIZE)
+    {
+        wprintf(_T("Failed to read block number %d.\n"), nBlock);
+        _exit(-1);
+    }
+
+    return m_pCache[iEmpty].pData;
+}
+
+void CDiskImage::MarkBlockChanged(int nBlock)
+{
+    for (int i = 0; i < m_nCacheBlocks; i++)
+    {
+        if (m_pCache[i].nBlock != nBlock) continue;
+
+        m_pCache[i].bChanged = TRUE;
+        m_pCache[i].dwLastUsage = ::GetTickCount();
+        break;
+    }
 }
 
 
