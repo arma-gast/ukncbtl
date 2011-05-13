@@ -9,6 +9,12 @@
 //////////////////////////////////////////////////////////////////////
 // Структуры данных, представляющие информацию о томе RT-11
 
+/* Types for rtFileEntry 'status' */
+#define RT11_STATUS_TENTATIVE   256     /* Temporary file */
+#define RT11_STATUS_EMPTY       512     /* Marks empty space */
+#define RT11_STATUS_PERM        1024    /* A "real" file */
+#define RT11_STATUS_ENDMARK     2048    /* Marks the end of file entries */
+
 struct CVolumeCatalogEntry;
 struct CVolumeCatalogSegment;
 
@@ -149,9 +155,8 @@ LPCTSTR g_sImageFileName = NULL;
 LPCTSTR g_sFileName = NULL;
 
 CDiskImage g_diskimage;
-
 CVolumeInformation g_volumeinfo;
-
+WORD g_segmentBuffer[512];
 
 //////////////////////////////////////////////////////////////////////
 
@@ -190,7 +195,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 void PrintWelcome()
 {
-    wprintf(_T("RT11DSK Utility  by Nikita Zeemin  [%S %S]\n\n"), __DATE__, __TIME__);
+    wprintf(_T("RT11DSK Utility  by Nikita Zimin  [%S %S]\n\n"), __DATE__, __TIME__);
 }
 
 BOOL ParseCommandLine(int argc, _TCHAR* argv[])
@@ -281,7 +286,11 @@ void DecodeImageCatalog()
     strncpy_s(g_volumeinfo.systemid, 13, sSystemId, 12);
 
     // Разбор первого блока каталога
-    WORD* pCatalogSector = (WORD*) g_diskimage.GetBlock(nFirstCatalogBlock);
+    BYTE* pBlock1 = g_diskimage.GetBlock(nFirstCatalogBlock);
+    memcpy(g_segmentBuffer, pBlock1, 512);
+    BYTE* pBlock2 = g_diskimage.GetBlock(nFirstCatalogBlock + 1);
+    memcpy(g_segmentBuffer + 256, pBlock2, 512);
+    WORD* pCatalogSector = g_segmentBuffer;
     g_volumeinfo.catalogsegmentcount = pCatalogSector[0];
     g_volumeinfo.lastopenedsegment = pCatalogSector[2];
     WORD nExtraBytesLength = pCatalogSector[3];
@@ -348,7 +357,11 @@ void DecodeImageCatalog()
 
         // Переходим к следующему сегменту каталога
         nCatalogBlock = nFirstCatalogBlock + (pSegment->nextsegment - 1) * 2;
-        pCatalogSector = (WORD*) g_diskimage.GetBlock(nCatalogBlock);
+        pBlock1 = g_diskimage.GetBlock(nCatalogBlock);
+        memcpy(g_segmentBuffer, pBlock1, 512);
+        pBlock2 = g_diskimage.GetBlock(nCatalogBlock + 1);
+        memcpy(g_segmentBuffer + 256, pBlock2, 512);
+        pCatalogSector = g_segmentBuffer;
         nCatalogSegmentNumber = pSegment->nextsegment;
         pSegment++;
     }
@@ -537,7 +550,7 @@ BOOL DoAddFile()
             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        wprintf(_T("Failed to open file."));
+        wprintf(_T("Failed to open the file."));
         return FALSE;
     }
 
@@ -555,7 +568,11 @@ BOOL DoAddFile()
     memset(pFileData, 0, dwFileSize);
     DWORD dwBytesRead;
     ::ReadFile(hFile, pFileData, dwFileLength, &dwBytesRead, NULL);
-    //TODO: Проверка на ошибки чтения
+    if (dwBytesRead != dwFileLength)
+    {
+        wprintf(_T("Failed to read the file.\n"));
+        _exit(-1);
+    }
     ::CloseHandle(hFile);
 
     wprintf(_T("File size is %ld bytes or %d blocks\n"), dwFileLength, nFileSizeBlocks);
@@ -645,7 +662,7 @@ BOOL DoAddFile()
         BYTE* pData = g_diskimage.GetBlock(nBlock);
         memcpy(pData, pFileBlockData, RT11_BLOCK_SIZE);
         // Сообщаем что блок был изменен
-        g_diskimage.MarkTrackChanged();
+        g_diskimage.MarkBlockChanged(nBlock);
         
         nBlock++;
     }
@@ -664,7 +681,11 @@ BOOL DoAddFile()
 
 void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
 {
-    WORD* pData = (WORD*) g_diskimage.GetBlock(pSegment->segmentblock);
+    BYTE* pBlock1 = g_diskimage.GetBlock(pSegment->segmentblock);
+    memcpy(g_segmentBuffer, pBlock1, 512);
+    BYTE* pBlock2 = g_diskimage.GetBlock(pSegment->segmentblock + 1);
+    memcpy(g_segmentBuffer + 256, pBlock2, 512);
+    WORD* pData = g_segmentBuffer;
 
     pData += 5;  // Пропускаем заголовок сегмента
     for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
@@ -676,7 +697,10 @@ void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
         pData += g_volumeinfo.catalogentrylength;
     }
 
-    g_diskimage.MarkTrackChanged();
+    memcpy(pBlock1, g_segmentBuffer, 512);
+    g_diskimage.MarkBlockChanged(pSegment->segmentblock);
+    memcpy(pBlock2, g_segmentBuffer + 256, 512);
+    g_diskimage.MarkBlockChanged(pSegment->segmentblock + 1);
 }
 
 
