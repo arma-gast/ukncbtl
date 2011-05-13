@@ -15,9 +15,9 @@ struct CCachedBlock;
 class CDiskImage
 {
 protected:
-    HANDLE          m_hFile;
-    BOOL            m_okReadOnly;
-    BOOL            m_okNetRT11Image;
+    FILE*           m_fpFile;
+    bool            m_okReadOnly;
+    bool            m_okNetRT11Image;
     int             m_nTotalBlocks;
     int             m_nCacheBlocks;  // Cache size in blocks
     CCachedBlock*   m_pCache;
@@ -27,18 +27,18 @@ public:
     ~CDiskImage();
 
 public:
-    BOOL Attach(LPCTSTR sFileName);
+    bool Attach(LPCTSTR sFileName);
     void Detach();
 
 public:
     int IsReadOnly() const { return m_okReadOnly; }
     int GetBlockCount() const { return m_nTotalBlocks; }
-    BYTE* GetBlock(int nBlock);
+    void* GetBlock(int nBlock);
     void MarkBlockChanged(int nBlock);
     void FlushChanges();
 
 private:
-    LONG GetBlockOffset(int nBlock) const;
+    long GetBlockOffset(int nBlock) const;
 
 };
 
