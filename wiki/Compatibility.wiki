@@ -70,3 +70,4 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Speed.png
 На реальных УКНЦ цифры несколько отличаются:
   * Alexey Kisly, экземпляр 1: *624 / 240 / 80 / 64*
   * Alexey Kisly, экземпляр 2: *672 / 280 / 80 / 64*
+  * Gryphon: *672 / 280 / 80 / 64*
