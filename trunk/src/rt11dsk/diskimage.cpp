@@ -45,7 +45,7 @@ bool CDiskImage::Attach(LPCTSTR sImageFileName)
         m_okReadOnly = true;
         m_fpFile = ::_wfopen(sImageFileName, _T("rb"));
         if (m_fpFile == NULL)
-            return true;
+            return false;
     }
 
     // Calculate m_TotalBlocks

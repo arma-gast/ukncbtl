@@ -55,12 +55,18 @@ int _tmain(int argc, _TCHAR* argv[])
     if (g_okHardCommand)
     {
         if (!g_hardimage.Attach(g_sImageFileName))
+        {
+            wprintf(_T("Failed to open the image file.\n"));
             return 255;
+        }
     }
     else
     {
         if (!g_diskimage.Attach(g_sImageFileName))
+        {
+            wprintf(_T("Failed to open the image file.\n"));
             return 255;
+        }
         // Разбор Home Block и чтение каталога диска
         DecodeImageCatalog();
     }
@@ -76,8 +82,15 @@ int _tmain(int argc, _TCHAR* argv[])
         DoHardList();
 
     // Завершение работы с файлом
-    FreeImageCatalog();
-    g_diskimage.Detach();
+    if (g_okHardCommand)
+    {
+        g_hardimage.Detach();
+    }
+    else
+    {
+        FreeImageCatalog();
+        g_diskimage.Detach();
+    }
 
     return 0;
 }
@@ -609,7 +622,10 @@ void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
 
 bool DoHardList()
 {
+    g_hardimage.PrintImageInfo();
+    wprintf(_T("\n"));
     g_hardimage.PrintPartitionTable();
+    wprintf(_T("\n"));
 
     return true;
 }
