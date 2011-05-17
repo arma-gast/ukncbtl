@@ -165,11 +165,13 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
 
 void PrintUsage()
 {
-    wprintf(_T("\n"));
-    wprintf(_T("Usage:  rt11dsk l <ImageFile>  - list image contents\n"));
-    wprintf(_T("Usage:  rt11dsk e <ImageFile> <FileName>  - extract file\n"));
-    wprintf(_T("Usage:  rt11dsk a <ImageFile> <FileName>  - add file\n"));
-    wprintf(_T("\n  <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
+    wprintf(_T("\nUsage:\n"));
+    wprintf(_T("  rt11dsk l <ImageFile>  - list image contents\n"));
+    wprintf(_T("  rt11dsk e <ImageFile> <FileName>  - extract file\n"));
+    wprintf(_T("  rt11dsk a <ImageFile> <FileName>  - add file\n"));
+    wprintf(_T("  rt11dsk hl <HddImageFile>  - list HDD image partitions\n\n"));
+    wprintf(_T("  <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
+    wprintf(_T("  <HddImageFile> is UKNC hard disk image\n"));
 }
 
 static void PrintTableHeader()

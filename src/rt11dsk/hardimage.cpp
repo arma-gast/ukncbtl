@@ -35,6 +35,7 @@ CHardImage::CHardImage()
 {
     m_okReadOnly = false;
     m_fpFile = NULL;
+    m_drivertype = HDD_DRIVER_UNKNOWN;
     m_nSectorsPerTrack = m_nSidesPerTrack = m_nPartitions = 0;
     m_pPartitionInfos = NULL;
 }
@@ -84,13 +85,23 @@ bool CHardImage::Attach(LPCTSTR sImageFileName)
     m_nSectorsPerTrack = g_hardbuffer[0];
     m_nSidesPerTrack = g_hardbuffer[1];
 
+    m_drivertype = HDD_DRIVER_UNKNOWN;
+    WORD wdwaittime = ((WORD*)g_hardbuffer)[0122 / 2];
+    WORD wdhidden = ((WORD*)g_hardbuffer)[0124 / 2];
+    if (wdwaittime != 0 || wdhidden != 0)
+        m_drivertype = HDD_DRIVER_WD;
+
     // Count partitions
     int count = 0;
+    long totalblocks = 0;
     for (int i = 1; i < 24; i++)
     {
         WORD blocks = *((WORD*)g_hardbuffer + i);
         if (blocks == 0) break;
+        if (blocks + totalblocks > (m_lFileSize / 512) - 1)
+            break;
         count++;
+        totalblocks += blocks;
     }
 
     m_nPartitions = count;

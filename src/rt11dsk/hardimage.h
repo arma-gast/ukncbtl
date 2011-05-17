@@ -2,6 +2,13 @@
 
 //////////////////////////////////////////////////////////////////////
 
+enum HDDDriverType
+{
+    HDD_DRIVER_UNKNOWN = 0,
+    HDD_DRIVER_ID = 1,
+    HDD_DRIVER_WD = 2,
+};
+
 struct CPartitionInfo;
 
 class CHardImage
@@ -11,6 +18,7 @@ protected:
     bool            m_okReadOnly;
     bool            m_okInverted;       // Inverted image
     long            m_lFileSize;
+    HDDDriverType   m_drivertype;
     int             m_nSectorsPerTrack;
     BYTE            m_nSidesPerTrack;
     int             m_nPartitions;
