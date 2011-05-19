@@ -40,6 +40,7 @@ public:
     void PrintImageInfo();
     void PrintPartitionTable();
     void SavePartitionToFile(int partition, LPCTSTR filename);
+    void UpdatePartitionFromFile(int partition, LPCTSTR filename);
 };
 
 //////////////////////////////////////////////////////////////////////

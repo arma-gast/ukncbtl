@@ -107,7 +107,7 @@ void CDiskImage::FlushChanges()
         ::fseek(m_fpFile, foffset, SEEK_SET);
 
         // Записываем блок
-        long lBytesWritten = ::fwrite(m_pCache[i].pData, 1, RT11_BLOCK_SIZE, m_fpFile);
+        size_t lBytesWritten = ::fwrite(m_pCache[i].pData, 1, RT11_BLOCK_SIZE, m_fpFile);
         if (lBytesWritten != RT11_BLOCK_SIZE)
         {
             wprintf(_T("Failed to write block number %d.\n"), m_pCache[i].nBlock);
@@ -185,7 +185,7 @@ void* CDiskImage::GetBlock(int nBlock)
     // Load the block data
     long foffset = GetBlockOffset(nBlock);
     ::fseek(m_fpFile, foffset, SEEK_SET);
-    long lBytesRead = ::fread(m_pCache[iEmpty].pData, 1, RT11_BLOCK_SIZE, m_fpFile);
+    size_t lBytesRead = ::fread(m_pCache[iEmpty].pData, 1, RT11_BLOCK_SIZE, m_fpFile);
     if (lBytesRead != RT11_BLOCK_SIZE)
     {
         wprintf(_T("Failed to read block number %d.\n"), nBlock);
