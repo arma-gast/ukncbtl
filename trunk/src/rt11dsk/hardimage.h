@@ -2,6 +2,8 @@
 
 //////////////////////////////////////////////////////////////////////
 
+#define RT11_BLOCK_SIZE         512
+
 enum HDDDriverType
 {
     HDD_DRIVER_UNKNOWN = 0,
@@ -37,6 +39,7 @@ public:
     int GetPartitionCount() const { return m_nPartitions; }
     void PrintImageInfo();
     void PrintPartitionTable();
+    void SavePartitionToFile(int partition, LPCTSTR filename);
 };
 
 //////////////////////////////////////////////////////////////////////

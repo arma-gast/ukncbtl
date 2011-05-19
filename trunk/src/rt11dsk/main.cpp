@@ -22,6 +22,7 @@ void DoPrintCatalogDirectory();
 void DoExtractFile();
 bool DoAddFile();
 bool DoHardList();
+void DoHardExtractPartition();
 void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
 
 
@@ -32,6 +33,8 @@ LPCTSTR g_sCommand = NULL;
 LPCTSTR g_sImageFileName = NULL;
 LPCTSTR g_sFileName = NULL;
 bool    g_okHardCommand = false;
+LPCTSTR g_sPartition = NULL;
+int     g_nPartition = -1;
 
 CDiskImage g_diskimage;
 CHardImage g_hardimage;
@@ -80,6 +83,8 @@ int _tmain(int argc, _TCHAR* argv[])
         DoAddFile();
     else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('l'))
         DoHardList();
+    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('x'))
+        DoHardExtractPartition();
 
     // Завершение работы с файлом
     if (g_okHardCommand)
@@ -117,6 +122,8 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
                 g_sCommand = arg;
             else if (g_sImageFileName == NULL)
                 g_sImageFileName = arg;
+            else if (g_sCommand[0] == _T('h') && g_sPartition == NULL)
+                g_sPartition = arg;
             else if (g_sFileName == NULL)
                 g_sFileName = arg;
             else
@@ -141,10 +148,14 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
             wprintf(_T("H-command not specified.\n"));
             return false;
         }
-        if (g_sCommand[1] != _T('l'))
+        if (g_sCommand[1] != _T('l') && g_sCommand[1] != _T('x'))
         {
             wprintf(_T("Unknown H-command: %s.\n"), g_sCommand);
             return false;
+        }
+        if (g_sPartition != NULL)
+        {
+            g_nPartition = _wtoi(g_sPartition);
         }
 
         return true;
@@ -166,12 +177,18 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
 void PrintUsage()
 {
     wprintf(_T("\nUsage:\n"));
-    wprintf(_T("  rt11dsk l <ImageFile>  - list image contents\n"));
-    wprintf(_T("  rt11dsk e <ImageFile> <FileName>  - extract file\n"));
-    wprintf(_T("  rt11dsk a <ImageFile> <FileName>  - add file\n"));
-    wprintf(_T("  rt11dsk hl <HddImageFile>  - list HDD image partitions\n\n"));
-    wprintf(_T("  <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
-    wprintf(_T("  <HddImageFile> is UKNC hard disk image\n"));
+    wprintf(_T("  Disk image commands:\n"));
+    wprintf(_T("    rt11dsk l <ImageFile>  - list image contents\n"));
+    wprintf(_T("    rt11dsk e <ImageFile> <FileName>  - extract file\n"));
+    wprintf(_T("    rt11dsk a <ImageFile> <FileName>  - add file\n"));
+    wprintf(_T("  Hard disk image commands:\n"));
+    wprintf(_T("    rt11dsk hl <HddImage>  - list HDD image partitions\n"));
+    wprintf(_T("    rt11dsk hx <HddImage> <Partn> <FileName>  - extract partition to file\n"));
+    wprintf(_T("  Parameters:\n"));
+    wprintf(_T("    <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
+    wprintf(_T("    <HddImage>  is UKNC hard disk image file name\n"));
+    wprintf(_T("    <Partn>     is hard disk image partition number, 0..23\n"));
+    wprintf(_T("    <FileName>  is a file name to read from or save to\n"));
 }
 
 static void PrintTableHeader()
@@ -486,7 +503,7 @@ bool DoAddFile()
     PVOID pFileData = ::malloc(dwFileSize);
     memset(pFileData, 0, dwFileSize);
     ::fseek(fpFile, 0, SEEK_SET);
-    LONG lBytesRead = ::fread(pFileData, 1, lFileLength, fpFile);
+    size_t lBytesRead = ::fread(pFileData, 1, lFileLength, fpFile);
     if (lBytesRead != lFileLength)
     {
         wprintf(_T("Failed to read the file.\n"));
@@ -630,6 +647,11 @@ bool DoHardList()
     wprintf(_T("\n"));
 
     return true;
+}
+
+void DoHardExtractPartition()
+{
+    g_hardimage.SavePartitionToFile(g_nPartition, g_sFileName);
 }
 
 

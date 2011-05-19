@@ -27,6 +27,20 @@ static void InvertBuffer(void* buffer)
     }
 }
 
+static DWORD GetHomeBlockChecksum(void* buffer)
+{
+    WORD* p = (WORD*) buffer;
+    DWORD crc = 0;
+    for (int i = 0; i < 255; i++)
+    {
+        crc += (DWORD) *p;
+        p++;
+    }
+    crc += ((DWORD)*p) << 16;
+
+    return crc;
+}
+
 //////////////////////////////////////////////////////////////////////
 
 static BYTE g_hardbuffer[512];
@@ -64,7 +78,7 @@ bool CHardImage::Attach(LPCTSTR sImageFileName)
 
     // Read first 512 bytes
     ::fseek(m_fpFile, 0, SEEK_SET);
-    long lBytesRead = ::fread(g_hardbuffer, 1, 512, m_fpFile);
+    size_t lBytesRead = ::fread(g_hardbuffer, 1, 512, m_fpFile);
     if (lBytesRead != 512)
     {
         wprintf(_T("Failed to read first 512 bytes of the hard disk image file.\n"));
@@ -80,7 +94,11 @@ bool CHardImage::Attach(LPCTSTR sImageFileName)
     if (m_okInverted)
         InvertBuffer(g_hardbuffer);
 
-    //TODO: Calculate and verify checksum
+    // Calculate and verify checksum
+    DWORD checksum = GetHomeBlockChecksum(g_hardbuffer);
+    //wprintf(_T("Home block checksum is 0x%08lx.\n"), checksum);
+    if (checksum != 0)
+        wprintf(_T("Home block checksum is incorrect!\n"), checksum);
 
     m_nSectorsPerTrack = g_hardbuffer[0];
     m_nSidesPerTrack = g_hardbuffer[1];
@@ -154,6 +172,56 @@ void CHardImage::PrintPartitionTable()
     wprintf(_T("---  ------  ---------  ----------\n"));
 
     wprintf(_T("     %6d\n"), blocks);
+}
+
+void CHardImage::SavePartitionToFile(int partition, LPCTSTR filename)
+{
+    if (partition < 0 || partition >= m_nPartitions)
+    {
+        wprintf(_T("Wrong partition number specified.\n"));
+        return;
+    }
+
+    // Open output file
+    FILE* foutput = NULL;
+    errno_t err = _wfopen_s(&foutput, filename, _T("wb"));
+    if (err != 0)
+    {
+        wprintf(_T("Failed to open output file %s: error %d\n"), filename, err);
+        return;
+    }
+
+    CPartitionInfo* pPartInfo = m_pPartitionInfos + partition;
+
+    wprintf(_T("Extracting partition number %d to file %s\n"), partition, filename);
+    wprintf(_T("Saving %d blocks, %ld bytes.\n"), pPartInfo->blocks, ((DWORD)pPartInfo->blocks) * RT11_BLOCK_SIZE);
+
+    // Copy data
+    ::fseek(m_fpFile, pPartInfo->offset, SEEK_SET);
+    for (int i = 0; i < pPartInfo->blocks; i++)
+    {
+        size_t lBytesRead = ::fread(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, m_fpFile);
+        if (lBytesRead != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to read disk image file.\n"));
+            fclose(foutput);
+            return;
+        }
+
+        if (m_okInverted)
+            InvertBuffer(g_hardbuffer);
+
+        size_t nBytesWritten = fwrite(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, foutput);
+        if (nBytesWritten != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to write to output file.\n"));
+            fclose(foutput);
+            return;
+        }
+    }
+    fclose(foutput);
+
+    wprintf(_T("\nDone.\n"));
 }
 
 
