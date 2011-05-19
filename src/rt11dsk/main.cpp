@@ -18,12 +18,14 @@ void PrintTableFooter();
 void DecodeImageCatalog();
 void FreeImageCatalog();
 void PrepareTrack(int nSide, int nTrack);
+void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
+
 void DoPrintCatalogDirectory();
 void DoExtractFile();
 bool DoAddFile();
 bool DoHardList();
 void DoHardExtractPartition();
-void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
+void DoHardUpdatePartition();
 
 
 //////////////////////////////////////////////////////////////////////
@@ -85,6 +87,8 @@ int _tmain(int argc, _TCHAR* argv[])
         DoHardList();
     else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('x'))
         DoHardExtractPartition();
+    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('u'))
+        DoHardUpdatePartition();
 
     // Завершение работы с файлом
     if (g_okHardCommand)
@@ -148,7 +152,7 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
             wprintf(_T("H-command not specified.\n"));
             return false;
         }
-        if (g_sCommand[1] != _T('l') && g_sCommand[1] != _T('x'))
+        if (g_sCommand[1] != _T('l') && g_sCommand[1] != _T('x') && g_sCommand[1] != _T('u'))
         {
             wprintf(_T("Unknown H-command: %s.\n"), g_sCommand);
             return false;
@@ -184,6 +188,7 @@ void PrintUsage()
     wprintf(_T("  Hard disk image commands:\n"));
     wprintf(_T("    rt11dsk hl <HddImage>  - list HDD image partitions\n"));
     wprintf(_T("    rt11dsk hx <HddImage> <Partn> <FileName>  - extract partition to file\n"));
+    wprintf(_T("    rt11dsk hu <HddImage> <Partn> <FileName>  - update partition from the file\n"));
     wprintf(_T("  Parameters:\n"));
     wprintf(_T("    <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
     wprintf(_T("    <HddImage>  is UKNC hard disk image file name\n"));
@@ -651,7 +656,34 @@ bool DoHardList()
 
 void DoHardExtractPartition()
 {
+    if (g_nPartition < 0)
+    {
+        wprintf(_T("Partition number expected.\n"));
+        return;
+    }
+    if (g_sFileName == NULL)
+    {
+        wprintf(_T("Output file name expected.\n"));
+        return;
+    }
+
     g_hardimage.SavePartitionToFile(g_nPartition, g_sFileName);
+}
+
+void DoHardUpdatePartition()
+{
+    if (g_nPartition < 0)
+    {
+        wprintf(_T("Partition number expected.\n"));
+        return;
+    }
+    if (g_sFileName == NULL)
+    {
+        wprintf(_T("Input file name expected.\n"));
+        return;
+    }
+
+    g_hardimage.UpdatePartitionFromFile(g_nPartition, g_sFileName);
 }
 
 

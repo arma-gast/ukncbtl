@@ -192,7 +192,6 @@ void CHardImage::SavePartitionToFile(int partition, LPCTSTR filename)
     }
 
     CPartitionInfo* pPartInfo = m_pPartitionInfos + partition;
-
     wprintf(_T("Extracting partition number %d to file %s\n"), partition, filename);
     wprintf(_T("Saving %d blocks, %ld bytes.\n"), pPartInfo->blocks, ((DWORD)pPartInfo->blocks) * RT11_BLOCK_SIZE);
 
@@ -203,7 +202,7 @@ void CHardImage::SavePartitionToFile(int partition, LPCTSTR filename)
         size_t lBytesRead = ::fread(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, m_fpFile);
         if (lBytesRead != RT11_BLOCK_SIZE)
         {
-            wprintf(_T("Failed to read disk image file.\n"));
+            wprintf(_T("Failed to read hard disk image file.\n"));
             fclose(foutput);
             return;
         }
@@ -220,6 +219,69 @@ void CHardImage::SavePartitionToFile(int partition, LPCTSTR filename)
         }
     }
     fclose(foutput);
+
+    wprintf(_T("\nDone.\n"));
+}
+
+void CHardImage::UpdatePartitionFromFile(int partition, LPCTSTR filename)
+{
+    if (partition < 0 || partition >= m_nPartitions)
+    {
+        wprintf(_T("Wrong partition number specified.\n"));
+        return;
+    }
+
+    //TODO: Check if m_okReadOnly
+
+    // Open input file
+    FILE* finput = NULL;
+    errno_t err = _wfopen_s(&finput, filename, _T("rb"));
+    if (err != 0)
+    {
+        wprintf(_T("Failed to open input file %s: error %d\n"), filename, err);
+        return;
+    }
+
+    CPartitionInfo* pPartInfo = m_pPartitionInfos + partition;
+    wprintf(_T("Updating partition number %d from file %s\n"), partition, filename);
+
+    // Get input file size, compare to the partition size
+    ::fseek(finput, 0, SEEK_END);
+    LONG lFileLength = ::ftell(finput);
+    if (lFileLength != ((LONG)pPartInfo->blocks) * RT11_BLOCK_SIZE)
+    {
+        wprintf(_T("The input file has wrong size: %ld, expected %ld.\n"), lFileLength, ((LONG)pPartInfo->blocks) * RT11_BLOCK_SIZE);
+        fclose(finput);
+        return;
+    }
+
+    wprintf(_T("Copying %d blocks, %ld bytes.\n"), pPartInfo->blocks, ((DWORD)pPartInfo->blocks) * RT11_BLOCK_SIZE);
+
+    // Copy data
+    ::fseek(finput, 0, SEEK_SET);
+    ::fseek(m_fpFile, pPartInfo->offset, SEEK_SET);
+    for (int i = 0; i < pPartInfo->blocks; i++)
+    {
+        size_t lBytesRead = ::fread(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, finput);
+        if (lBytesRead != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to read input file.\n"));
+            fclose(finput);
+            return;
+        }
+
+        if (m_okInverted)
+            InvertBuffer(g_hardbuffer);
+
+        size_t nBytesWritten = fwrite(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, m_fpFile);
+        if (nBytesWritten != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to write to hard image file.\n"));
+            fclose(finput);
+            return;
+        }
+    }
+    fclose(finput);
 
     wprintf(_T("\nDone.\n"));
 }
