@@ -286,6 +286,37 @@ void CHardImage::UpdatePartitionFromFile(int partition, LPCTSTR filename)
     wprintf(_T("\nDone.\n"));
 }
 
+void CHardImage::InvertImage()
+{
+    long blocks = m_lFileSize / RT11_BLOCK_SIZE;
+    wprintf(_T("Inverting %d blocks, %ld bytes.\n"), blocks, blocks * RT11_BLOCK_SIZE);
+
+    for (long i = 0; i < blocks; i++)
+    {
+        long offset = i * RT11_BLOCK_SIZE;
+
+        ::fseek(m_fpFile, offset, SEEK_SET);
+        size_t lBytesRead = ::fread(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, m_fpFile);
+        if (lBytesRead != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to read hard disk image file.\n"));
+            return;
+        }
+
+        InvertBuffer(g_hardbuffer);
+
+        ::fseek(m_fpFile, offset, SEEK_SET);
+        size_t nBytesWritten = fwrite(g_hardbuffer, sizeof(BYTE), RT11_BLOCK_SIZE, m_fpFile);
+        if (nBytesWritten != RT11_BLOCK_SIZE)
+        {
+            wprintf(_T("Failed to write to hard disk image file.\n"));
+            return;
+        }
+    }
+    
+    wprintf(_T("\nDone.\n"));
+}
+
 
 //////////////////////////////////////////////////////////////////////
 

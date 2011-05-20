@@ -37,10 +37,13 @@ public:
 public:
     int IsReadOnly() const { return m_okReadOnly; }
     int GetPartitionCount() const { return m_nPartitions; }
+
+public:
     void PrintImageInfo();
     void PrintPartitionTable();
     void SavePartitionToFile(int partition, LPCTSTR filename);
     void UpdatePartitionFromFile(int partition, LPCTSTR filename);
+    void InvertImage();
 };
 
 //////////////////////////////////////////////////////////////////////
