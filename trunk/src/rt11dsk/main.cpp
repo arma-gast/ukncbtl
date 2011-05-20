@@ -23,6 +23,7 @@ void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
 void DoPrintCatalogDirectory();
 void DoExtractFile();
 bool DoAddFile();
+void DoHardInvert();
 bool DoHardList();
 void DoHardExtractPartition();
 void DoHardUpdatePartition();
@@ -89,6 +90,8 @@ int _tmain(int argc, _TCHAR* argv[])
         DoHardExtractPartition();
     else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('u'))
         DoHardUpdatePartition();
+    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('i'))
+        DoHardInvert();
 
     // Завершение работы с файлом
     if (g_okHardCommand)
@@ -152,7 +155,8 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
             wprintf(_T("H-command not specified.\n"));
             return false;
         }
-        if (g_sCommand[1] != _T('l') && g_sCommand[1] != _T('x') && g_sCommand[1] != _T('u'))
+        if (g_sCommand[1] != _T('l') && g_sCommand[1] != _T('x') && g_sCommand[1] != _T('u') &&
+            g_sCommand[1] != _T('i'))
         {
             wprintf(_T("Unknown H-command: %s.\n"), g_sCommand);
             return false;
@@ -186,6 +190,7 @@ void PrintUsage()
     wprintf(_T("    rt11dsk e <ImageFile> <FileName>  - extract file\n"));
     wprintf(_T("    rt11dsk a <ImageFile> <FileName>  - add file\n"));
     wprintf(_T("  Hard disk image commands:\n"));
+    wprintf(_T("    rt11dsk hi <HddImage>  - invert HDD image file\n"));
     wprintf(_T("    rt11dsk hl <HddImage>  - list HDD image partitions\n"));
     wprintf(_T("    rt11dsk hx <HddImage> <Partn> <FileName>  - extract partition to file\n"));
     wprintf(_T("    rt11dsk hu <HddImage> <Partn> <FileName>  - update partition from the file\n"));
@@ -642,6 +647,13 @@ void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
     g_diskimage.MarkBlockChanged(pSegment->segmentblock);
     memcpy(pBlock2, g_segmentBuffer + 256, 512);
     g_diskimage.MarkBlockChanged(pSegment->segmentblock + 1);
+}
+
+void DoHardInvert()
+{
+    g_hardimage.PrintImageInfo();
+    wprintf(_T("\n"));
+    g_hardimage.InvertImage();
 }
 
 bool DoHardList()
