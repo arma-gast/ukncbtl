@@ -17,6 +17,7 @@ struct CCachedBlock
 
 //////////////////////////////////////////////////////////////////////
 
+static CVolumeInformation g_volumeinfo;
 static WORD g_segmentBuffer[512];
 
 
@@ -49,8 +50,9 @@ void CDiskImage::UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
 
 CDiskImage::CDiskImage()
 {
-    m_okReadOnly = m_okNetRT11Image = false;
+    m_okReadOnly = false;
     m_fpFile = NULL;
+    m_lStartOffset = 0;
     m_nTotalBlocks = m_nCacheBlocks = 0;
     m_pCache = NULL;
 }
@@ -63,9 +65,10 @@ CDiskImage::~CDiskImage()
 bool CDiskImage::Attach(LPCTSTR sImageFileName)
 {
     // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
+    m_lStartOffset = 0;
     LPCTSTR sImageFilenameExt = wcsrchr(sImageFileName, _T('.'));
     if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
-        m_okNetRT11Image = true;
+        m_lStartOffset = NETRT11_IMAGE_HEADER_SIZE;
 
     // Try to open as Normal first, then as ReadOnly
     m_okReadOnly = false;
@@ -122,7 +125,7 @@ void CDiskImage::Detach()
 long CDiskImage::GetBlockOffset(int nBlock) const
 {
     long foffset = ((long)nBlock) * RT11_BLOCK_SIZE;
-    if (m_okNetRT11Image) foffset += NETRT11_IMAGE_HEADER_SIZE;
+    foffset += m_lStartOffset;
     return foffset;
 }
 
@@ -651,6 +654,21 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
 
 //////////////////////////////////////////////////////////////////////
 
+CVolumeInformation::CVolumeInformation()
+{
+    catalogsegments = NULL;
+}
+
+CVolumeInformation::~CVolumeInformation()
+{
+    if (catalogsegments != NULL)
+    {
+        ::free(g_volumeinfo.catalogsegments);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////
 
 CVolumeCatalogEntry::CVolumeCatalogEntry()
 {

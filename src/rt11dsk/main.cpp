@@ -23,7 +23,7 @@ void DoHardUpdatePartition();
 
 
 //////////////////////////////////////////////////////////////////////
-// Глобальные переменные
+// Globals
 
 LPCTSTR g_sCommand = NULL;
 LPCTSTR g_sImageFileName = NULL;
@@ -32,72 +32,30 @@ bool    g_okHardCommand = false;
 LPCTSTR g_sPartition = NULL;
 int     g_nPartition = -1;
 
-CDiskImage g_diskimage;
-CHardImage g_hardimage;
-CVolumeInformation g_volumeinfo;
+struct CommandInfo
+{
+    LPCTSTR command;
+    bool    okHard;  // true for hard disk image command, false for disk image command
+    void    (*commandImpl)();
+}
+static g_CommandInfos[] =
+{
+    { _T("l"),  false,  DoDiskList              },
+    { _T("e"),  false,  DoDiskExtractFile       },
+    { _T("a"),  false,  DoDiskAddFile           },
+    { _T("hi"), true,   DoHardInvert            },
+    { _T("hl"), true,   DoHardList              },
+    { _T("hx"), true,   DoHardExtractPartition  },
+    { _T("hu"), true,   DoHardUpdatePartition   },
+};
+
+CDiskImage      g_diskimage;
+CHardImage      g_hardimage;
+CommandInfo*    g_pCommand = NULL;
+
 
 //////////////////////////////////////////////////////////////////////
 
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-    PrintWelcome();
-
-    if (!ParseCommandLine(argc, argv))
-    {
-        PrintUsage();
-        return 255;
-    }
-
-    // Подключение к файлу образа
-    if (g_okHardCommand)
-    {
-        if (!g_hardimage.Attach(g_sImageFileName))
-        {
-            wprintf(_T("Failed to open the image file.\n"));
-            return 255;
-        }
-    }
-    else
-    {
-        if (!g_diskimage.Attach(g_sImageFileName))
-        {
-            wprintf(_T("Failed to open the image file.\n"));
-            return 255;
-        }
-        // Разбор Home Block и чтение каталога диска
-        g_diskimage.DecodeImageCatalog();  //TODO: Incapsulate into CDiskImage
-    }
-
-    // Main task
-    if (g_sCommand[0] == _T('l'))
-        DoDiskList();
-    else if (g_sCommand[0] == _T('e'))
-        DoDiskExtractFile();
-    else if (g_sCommand[0] == _T('a'))
-        DoDiskAddFile();
-    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('l'))
-        DoHardList();
-    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('x'))
-        DoHardExtractPartition();
-    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('u'))
-        DoHardUpdatePartition();
-    else if (g_sCommand[0] == _T('h') && g_sCommand[1] == _T('i'))
-        DoHardInvert();
-
-    // Завершение работы с файлом
-    if (g_okHardCommand)
-    {
-        g_hardimage.Detach();
-    }
-    else
-    {
-        ::free(g_volumeinfo.catalogsegments);  //TODO: Incapsulate into CDiskImage
-        g_diskimage.Detach();
-    }
-
-    return 0;
-}
 
 void PrintWelcome()
 {
@@ -158,32 +116,31 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
         wprintf(_T("Command not specified.\n"));
         return false;
     }
-    if (g_sCommand[0] == _T('h'))
+    CommandInfo* pcinfo = NULL;
+    for (int i = 0; i < sizeof(g_CommandInfos)/sizeof(CommandInfo); i++)
     {
-        g_okHardCommand = true;
-        if (g_sCommand[1] == 0)
+        if (wcscmp(g_sCommand, g_CommandInfos[i].command) == 0)
         {
-            wprintf(_T("Unknown command: %s.\n"), g_sCommand);
-            return false;
+            pcinfo = g_CommandInfos + i;
+            break;
         }
-        if (g_sCommand[1] != _T('l') && g_sCommand[1] != _T('x') && g_sCommand[1] != _T('u') &&
-            g_sCommand[1] != _T('i'))
-        {
-            wprintf(_T("Unknown command: %s.\n"), g_sCommand);
-            return false;
-        }
-        if (g_sPartition != NULL)
-        {
-            g_nPartition = _wtoi(g_sPartition);
-        }
-
-        return true;
     }
-    if (g_sCommand[0] != _T('l') && g_sCommand[0] != _T('e') && g_sCommand[0] != _T('a'))
+    if (pcinfo == NULL)
     {
         wprintf(_T("Unknown command: %s.\n"), g_sCommand);
         return false;
     }
+    g_pCommand = pcinfo;
+
+    if (pcinfo->okHard)
+    {
+        g_okHardCommand = true;
+        if (g_sPartition != NULL)
+        {
+            g_nPartition = _wtoi(g_sPartition);
+        }
+    }
+
     if (g_sImageFileName == NULL)
     {
         wprintf(_T("Image file not specified.\n"));
@@ -193,22 +150,63 @@ bool ParseCommandLine(int argc, _TCHAR* argv[])
     return true;
 }
 
+int _tmain(int argc, _TCHAR* argv[])
+{
+    PrintWelcome();
+
+    if (!ParseCommandLine(argc, argv))
+    {
+        PrintUsage();
+        return 255;
+    }
+
+    // Подключение к файлу образа
+    if (g_okHardCommand)
+    {
+        if (!g_hardimage.Attach(g_sImageFileName))
+        {
+            wprintf(_T("Failed to open the image file.\n"));
+            return 255;
+        }
+    }
+    else
+    {
+        if (!g_diskimage.Attach(g_sImageFileName))
+        {
+            wprintf(_T("Failed to open the image file.\n"));
+            return 255;
+        }
+    }
+
+    // Main task
+    g_pCommand->commandImpl();
+
+    // Завершение работы с файлом
+    g_diskimage.Detach();
+    g_hardimage.Detach();
+
+    return 0;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 
 
 void DoDiskList()
 {
+    g_diskimage.DecodeImageCatalog();
     g_diskimage.PrintCatalogDirectory();
 }
 
 void DoDiskExtractFile()
 {
+    g_diskimage.DecodeImageCatalog();
     g_diskimage.SaveEntryToExternalFile(g_sFileName);
 }
 
 void DoDiskAddFile()
 {
+    g_diskimage.DecodeImageCatalog();
     g_diskimage.AddFileToImage(g_sFileName);
 }
 

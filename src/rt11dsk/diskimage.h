@@ -18,8 +18,8 @@ class CDiskImage
 protected:
     FILE*           m_fpFile;
     bool            m_okReadOnly;
-    bool            m_okNetRT11Image;
-    int             m_nTotalBlocks;
+    long            m_lStartOffset;  // First block start offset in the image file
+    int             m_nTotalBlocks;  // Total blocks in the image
     int             m_nCacheBlocks;  // Cache size in blocks
     CCachedBlock*   m_pCache;
 
@@ -80,6 +80,10 @@ struct CVolumeInformation
     // Массив сегментов
     CVolumeCatalogSegment* catalogsegments;
     WORD catalogentriescount;  // Количество валидных записей каталога, включая завершающую ENDMARK
+
+public:
+    CVolumeInformation();
+    ~CVolumeInformation();
 };
 
 // Структура данных для сегмента каталога
@@ -113,12 +117,6 @@ public:
     void Pack(WORD* pDest);   // Упаковка записи в каталог
     void Print();  // Печать строки каталога на консоль
 };
-
-
-//////////////////////////////////////////////////////////////////////
-
-
-extern CVolumeInformation g_volumeinfo;
 
 
 //////////////////////////////////////////////////////////////////////
