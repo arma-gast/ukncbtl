@@ -16,8 +16,49 @@ struct CCachedBlock
 
 
 //////////////////////////////////////////////////////////////////////
+// Структуры данных, представляющие информацию о томе RT-11
 
-static CVolumeInformation g_volumeinfo;
+/* Types for rtFileEntry 'status' */
+#define RT11_STATUS_TENTATIVE   256     /* Temporary file */
+#define RT11_STATUS_EMPTY       512     /* Marks empty space */
+#define RT11_STATUS_PERM        1024    /* A "real" file */
+#define RT11_STATUS_ENDMARK     2048    /* Marks the end of file entries */
+
+// Структура для хранения разобранной строки каталога
+struct CVolumeCatalogEntry
+{
+public:  // Упакованные поля записи
+    WORD status;    // See RT11_STATUS_xxx constants
+    WORD datepac;   // Упакованное поле даты
+    WORD start;     // File start block number
+    WORD length;    // File length in 512-byte blocks
+public:  // Распакованные поля записи
+    TCHAR name[7];  // File name - 6 characters
+    TCHAR ext[4];   // File extension - 3 characters
+
+public:
+    CVolumeCatalogEntry();
+    void Unpack(WORD const * pSrc, WORD filestartblock);  // Распаковка записи из каталога
+    void Pack(WORD* pDest);   // Упаковка записи в каталог
+    void Print();  // Печать строки каталога на консоль
+};
+
+// Структура данных для сегмента каталога
+struct CVolumeCatalogSegment
+{
+public:
+    WORD segmentblock;  // Блок на диске, в котором расположен этот сегмент каталога
+    WORD entriesused;   // Количество использованых записей каталога
+public:
+    WORD nextsegment;   // Номер следующего сегмента
+    WORD start;         // Номер блока, с которого начинаются файлы этого сегмента
+    // Массив записей каталога, размером в максимально возможное кол-во записей для этого сегмента
+    CVolumeCatalogEntry* catalogentries;
+};
+
+
+//////////////////////////////////////////////////////////////////////
+
 static WORD g_segmentBuffer[512];
 
 
@@ -30,13 +71,13 @@ void CDiskImage::UpdateCatalogSegment(CVolumeCatalogSegment* pSegment)
     WORD* pData = g_segmentBuffer;
 
     pData += 5;  // Пропускаем заголовок сегмента
-    for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+    for (int entryno = 0; entryno < m_volumeinfo.catalogentriespersegment; entryno++)
     {
         CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
 
         pEntry->Pack(pData);
 
-        pData += g_volumeinfo.catalogentrylength;
+        pData += m_volumeinfo.catalogentrylength;
     }
 
     memcpy(pBlock1, g_segmentBuffer, 512);
@@ -242,20 +283,20 @@ void CDiskImage::MarkBlockChanged(int nBlock)
 
 void CDiskImage::DecodeImageCatalog()
 {
-    memset(&g_volumeinfo, 0, sizeof(g_volumeinfo));
+    memset(&m_volumeinfo, 0, sizeof(m_volumeinfo));
 
     // Разбор Home Block
     BYTE* pHomeSector = (BYTE*) GetBlock(1);
     WORD nFirstCatalogBlock = pHomeSector[0724];  // Это должен быть блок номер 6
     if (nFirstCatalogBlock == 0) nFirstCatalogBlock = 6;
-    g_volumeinfo.firstcatalogblock = nFirstCatalogBlock;
-    g_volumeinfo.systemversion = pHomeSector[0726];
+    m_volumeinfo.firstcatalogblock = nFirstCatalogBlock;
+    m_volumeinfo.systemversion = pHomeSector[0726];
     LPCSTR sVolumeId = (LPCSTR) pHomeSector + 0730;
-    strncpy_s(g_volumeinfo.volumeid, 13, sVolumeId, 12);
+    strncpy_s(m_volumeinfo.volumeid, 13, sVolumeId, 12);
     LPCSTR sOwnerName = (LPCSTR) pHomeSector + 0744;
-    strncpy_s(g_volumeinfo.ownername, 13, sOwnerName, 12);
+    strncpy_s(m_volumeinfo.ownername, 13, sOwnerName, 12);
     LPCSTR sSystemId = (LPCSTR) pHomeSector + 0760;
-    strncpy_s(g_volumeinfo.systemid, 13, sSystemId, 12);
+    strncpy_s(m_volumeinfo.systemid, 13, sSystemId, 12);
 
     // Разбор первого блока каталога
     BYTE* pBlock1 = (BYTE*) GetBlock(nFirstCatalogBlock);
@@ -263,21 +304,21 @@ void CDiskImage::DecodeImageCatalog()
     BYTE* pBlock2 = (BYTE*) GetBlock(nFirstCatalogBlock + 1);
     memcpy(g_segmentBuffer + 256, pBlock2, 512);
     WORD* pCatalogSector = g_segmentBuffer;
-    g_volumeinfo.catalogsegmentcount = pCatalogSector[0];
-    g_volumeinfo.lastopenedsegment = pCatalogSector[2];
+    m_volumeinfo.catalogsegmentcount = pCatalogSector[0];
+    m_volumeinfo.lastopenedsegment = pCatalogSector[2];
     WORD nExtraBytesLength = pCatalogSector[3];
     WORD nExtraWordsLength = (nExtraBytesLength + 1) / 2;
-    g_volumeinfo.catalogextrawords = nExtraWordsLength;
+    m_volumeinfo.catalogextrawords = nExtraWordsLength;
     WORD nEntryLength = 7 + nExtraWordsLength;  // Total catalog entry length, in words
-    g_volumeinfo.catalogentrylength = nEntryLength;
+    m_volumeinfo.catalogentrylength = nEntryLength;
     WORD nEntriesPerSegment = (512 - 5) / nEntryLength;
-    g_volumeinfo.catalogentriespersegment = nEntriesPerSegment;
+    m_volumeinfo.catalogentriespersegment = nEntriesPerSegment;
 
     // Получаем память под список сегментов
-    g_volumeinfo.catalogsegments = (CVolumeCatalogSegment*) ::malloc(
-        sizeof(CVolumeCatalogSegment) * g_volumeinfo.catalogsegmentcount);
-    memset(g_volumeinfo.catalogsegments, 0,
-        sizeof(CVolumeCatalogSegment) * g_volumeinfo.catalogsegmentcount);
+    m_volumeinfo.catalogsegments = (CVolumeCatalogSegment*) ::malloc(
+        sizeof(CVolumeCatalogSegment) * m_volumeinfo.catalogsegmentcount);
+    memset(m_volumeinfo.catalogsegments, 0,
+        sizeof(CVolumeCatalogSegment) * m_volumeinfo.catalogsegmentcount);
 
     //TODO: Для заголовка самого первого сегмента каталога существует правило:
     //      если удвоить содержимое слова 1 и к результату прибавить начальный блок каталога (обычно 6),
@@ -285,7 +326,7 @@ void CDiskImage::DecodeImageCatalog()
 
     WORD nCatalogEntriesCount = 0;
     WORD nCatalogSegmentNumber = 1;
-    CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments;
+    CVolumeCatalogSegment* pSegment = m_volumeinfo.catalogsegments;
 
     WORD nCatalogBlock = nFirstCatalogBlock;
     for (;;)
@@ -338,7 +379,7 @@ void CDiskImage::DecodeImageCatalog()
         pSegment++;
     }
 
-    g_volumeinfo.catalogentriescount = nCatalogEntriesCount;
+    m_volumeinfo.catalogentriescount = nCatalogEntriesCount;
 }
 
 void CDiskImage::PrintTableHeader()
@@ -353,23 +394,23 @@ void CDiskImage::PrintTableFooter()
 
 void CDiskImage::PrintCatalogDirectory()
 {
-    wprintf(_T(" Volume: %S\n"), g_volumeinfo.volumeid);
-    wprintf(_T(" Owner:  %S\n"), g_volumeinfo.ownername);
-    wprintf(_T(" System: %S\n"), g_volumeinfo.systemid);
+    wprintf(_T(" Volume: %S\n"), m_volumeinfo.volumeid);
+    wprintf(_T(" Owner:  %S\n"), m_volumeinfo.ownername);
+    wprintf(_T(" System: %S\n"), m_volumeinfo.systemid);
     wprintf(_T("\n"));
-    wprintf(_T(" %d available segments, last opened segment: %d\n"), g_volumeinfo.catalogsegmentcount, g_volumeinfo.lastopenedsegment);
+    wprintf(_T(" %d available segments, last opened segment: %d\n"), m_volumeinfo.catalogsegmentcount, m_volumeinfo.lastopenedsegment);
     wprintf(_T("\n"));
     PrintTableHeader();
 
     WORD nFilesCount = 0;
     WORD nBlocksCount = 0;
     WORD nFreeBlocksCount = 0;
-    for (int segmno = 0; segmno < g_volumeinfo.catalogsegmentcount; segmno++)
+    for (int segmno = 0; segmno < m_volumeinfo.catalogsegmentcount; segmno++)
     {
-        CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments + segmno;
+        CVolumeCatalogSegment* pSegment = m_volumeinfo.catalogsegments + segmno;
         if (pSegment->catalogentries == NULL) continue;
         
-        for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+        for (int entryno = 0; entryno < m_volumeinfo.catalogentriespersegment; entryno++)
         {
             CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
 
@@ -423,12 +464,12 @@ void CDiskImage::SaveEntryToExternalFile(LPCTSTR sFileName)
 
     // Search for the filename/fileext
     CVolumeCatalogEntry* pFileEntry = NULL;
-    for (int segmno = 0; segmno < g_volumeinfo.catalogsegmentcount; segmno++)
+    for (int segmno = 0; segmno < m_volumeinfo.catalogsegmentcount; segmno++)
     {
-        CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments + segmno;
+        CVolumeCatalogSegment* pSegment = m_volumeinfo.catalogsegments + segmno;
         if (pSegment->catalogentries == NULL) continue;
         
-        for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+        for (int entryno = 0; entryno < m_volumeinfo.catalogentriespersegment; entryno++)
         {
             CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
 
@@ -555,12 +596,12 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
     //TODO: Выделить в отдельную функцию и искать наиболее подходящую запись, с минимальной разницей по длине
     CVolumeCatalogEntry* pFileEntry = NULL;
     CVolumeCatalogSegment* pFileSegment = NULL;
-    for (int segmno = 0; segmno < g_volumeinfo.catalogsegmentcount; segmno++)
+    for (int segmno = 0; segmno < m_volumeinfo.catalogsegmentcount; segmno++)
     {
-        CVolumeCatalogSegment* pSegment = g_volumeinfo.catalogsegments + segmno;
+        CVolumeCatalogSegment* pSegment = m_volumeinfo.catalogsegments + segmno;
         if (pSegment->catalogentries == NULL) continue;
         
-        for (int entryno = 0; entryno < g_volumeinfo.catalogentriespersegment; entryno++)
+        for (int entryno = 0; entryno < m_volumeinfo.catalogentriespersegment; entryno++)
         {
             CVolumeCatalogEntry* pEntry = pSegment->catalogentries + entryno;
 
@@ -592,7 +633,7 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
     if (okNeedNewCatalogEntry)
     {
         // Проверяем, нужно ли для новой записи каталога открывать новый сегмент каталога
-        if (pFileSegment->entriesused == g_volumeinfo.catalogentriespersegment)
+        if (pFileSegment->entriesused == m_volumeinfo.catalogentriespersegment)
         {
             wprintf(_T("New catalog segment needed - not implemented now, sorry.\n"));
             free(pFileData);
@@ -601,7 +642,7 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
 
         // Сдвигаем записи сегмента начиная с пустой на одну вправо - освобождаем место под новую запись
         int fileentryindex = (int) (pFileEntry - pFileSegment->catalogentries);
-        int totalentries = g_volumeinfo.catalogentriespersegment;
+        int totalentries = m_volumeinfo.catalogentriespersegment;
         memmove(pFileEntry + 1, pFileEntry, (totalentries - fileentryindex - 1) * sizeof(CVolumeCatalogEntry));
 
         // Новая пустая запись каталога
@@ -663,7 +704,7 @@ CVolumeInformation::~CVolumeInformation()
 {
     if (catalogsegments != NULL)
     {
-        ::free(g_volumeinfo.catalogsegments);
+        ::free(catalogsegments);
     }
 }
 
