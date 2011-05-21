@@ -8,6 +8,7 @@
 #define NETRT11_IMAGE_HEADER_SIZE  256
 
 struct CCachedBlock;
+struct CVolumeCatalogSegment;
 
 //////////////////////////////////////////////////////////////////////
 // ќбраз диска в формате .dsk либо .rtd
@@ -33,9 +34,18 @@ public:
 public:
     int IsReadOnly() const { return m_okReadOnly; }
     int GetBlockCount() const { return m_nTotalBlocks; }
+
+public:
+    void PrintCatalogDirectory();
+    void PrintTableHeader();
+    void PrintTableFooter();
     void* GetBlock(int nBlock);
     void MarkBlockChanged(int nBlock);
     void FlushChanges();
+    void DecodeImageCatalog();
+    void UpdateCatalogSegment(CVolumeCatalogSegment* pSegment);
+    void SaveEntryToExternalFile(LPCTSTR sFileName);
+    void AddFileToImage(LPCTSTR sFileName);
 
 private:
     long GetBlockOffset(int nBlock) const;
@@ -103,6 +113,12 @@ public:
     void Pack(WORD* pDest);   // ”паковка записи в каталог
     void Print();  // ѕечать строки каталога на консоль
 };
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+extern CVolumeInformation g_volumeinfo;
 
 
 //////////////////////////////////////////////////////////////////////
