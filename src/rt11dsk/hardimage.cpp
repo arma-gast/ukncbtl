@@ -12,6 +12,7 @@ UKNCBTL. If not, see <http://www.gnu.org/licenses/>. */
 
 #include "stdafx.h"
 #include "hardimage.h"
+#include "diskimage.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -37,7 +38,8 @@ static void InvertBuffer(void* buffer)
     }
 }
 
-static DWORD GetHomeBlockChecksum(void* buffer)
+// Verifies UKNC HDD home block checksum
+static DWORD CheckHomeBlockChecksum(void* buffer)
 {
     WORD* p = (WORD*) buffer;
     DWORD crc = 0;
@@ -105,8 +107,9 @@ bool CHardImage::Attach(LPCTSTR sImageFileName)
         InvertBuffer(g_hardbuffer);
 
     // Calculate and verify checksum
-    DWORD checksum = GetHomeBlockChecksum(g_hardbuffer);
+    DWORD checksum = CheckHomeBlockChecksum(g_hardbuffer);
     //wprintf(_T("Home block checksum is 0x%08lx.\n"), checksum);
+    m_okChecksum = checksum == 0;
     if (checksum != 0)
         wprintf(_T("Home block checksum is incorrect!\n"), checksum);
 
@@ -159,6 +162,15 @@ void CHardImage::Detach()
         ::fclose(m_fpFile);
         m_fpFile = NULL;
     }
+}
+
+bool CHardImage::PrepareDiskImage(int partition, CDiskImage* pdiskimage)
+{
+    if (partition < 0 || partition >= m_nPartitions)
+        return false;  // Wrong partition number
+
+    CPartitionInfo* pinfo = m_pPartitionInfos + partition;
+    return pdiskimage->Attach(m_fpFile, pinfo->offset, pinfo->blocks, m_okReadOnly);
 }
 
 void CHardImage::PrintImageInfo()

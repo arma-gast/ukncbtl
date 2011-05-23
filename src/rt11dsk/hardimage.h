@@ -22,6 +22,7 @@ enum HDDDriverType
 };
 
 struct CPartitionInfo;
+class CDiskImage;
 
 class CHardImage
 {
@@ -35,6 +36,7 @@ protected:
     BYTE            m_nSidesPerTrack;
     int             m_nPartitions;
     CPartitionInfo* m_pPartitionInfos;
+    bool            m_okChecksum;
 
 public:
     CHardImage();
@@ -43,10 +45,12 @@ public:
 public:
     bool Attach(LPCTSTR sFileName);
     void Detach();
+    bool PrepareDiskImage(int partition, CDiskImage* pdiskimage);
 
 public:
-    int IsReadOnly() const { return m_okReadOnly; }
+    bool IsReadOnly() const { return m_okReadOnly; }
     int GetPartitionCount() const { return m_nPartitions; }
+    bool IsChecksum() const { return m_okChecksum; }
 
 public:
     void PrintImageInfo();
