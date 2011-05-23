@@ -269,10 +269,10 @@ void CHardImage::UpdatePartitionFromFile(int partition, LPCTSTR filename)
 
     // Get input file size, compare to the partition size
     ::fseek(finput, 0, SEEK_END);
-    LONG lFileLength = ::ftell(finput);
-    if (lFileLength != ((LONG)pPartInfo->blocks) * RT11_BLOCK_SIZE)
+    long lFileLength = ::ftell(finput);
+    if (lFileLength != ((long)pPartInfo->blocks) * RT11_BLOCK_SIZE)
     {
-        wprintf(_T("The input file has wrong size: %ld, expected %ld.\n"), lFileLength, ((LONG)pPartInfo->blocks) * RT11_BLOCK_SIZE);
+        wprintf(_T("The input file has wrong size: %ld, expected %ld.\n"), lFileLength, ((long)pPartInfo->blocks) * RT11_BLOCK_SIZE);
         fclose(finput);
         return;
     }
