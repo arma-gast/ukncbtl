@@ -12,9 +12,19 @@
 // Windows Header Files:
 #include <windows.h>
 
+//typedef unsigned long       DWORD;
+//typedef unsigned char       BYTE;
+//typedef unsigned short      WORD;
+//typedef long                LONG;
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <tchar.h>
 #include <malloc.h>
+#include <memory.h>
+#include <string.h>
+
+//typedef const TCHAR* LPCTSTR;
+//typedef const char* LPCSTR;
 
 // TODO: reference additional headers your program requires here

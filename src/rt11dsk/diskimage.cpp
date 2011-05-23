@@ -11,6 +11,7 @@ UKNCBTL. If not, see <http://www.gnu.org/licenses/>. */
 // diskimage.cpp : Disk image utilities
 
 #include "stdafx.h"
+#include <time.h>
 #include "diskimage.h"
 #include "rad50.h"
 
@@ -21,7 +22,7 @@ struct CCachedBlock
     int     nBlock;
     void*   pData;
     bool    bChanged;
-    DWORD   dwLastUsage;  // GetTickCount() for last usage
+    clock_t cLastUsage;  // GetTickCount() for last usage
 };
 
 
@@ -236,7 +237,7 @@ void* CDiskImage::GetBlock(int nBlock)
     {
         if (m_pCache[i].nBlock == nBlock)
         {
-            m_pCache[i].dwLastUsage = ::GetTickCount();
+            m_pCache[i].cLastUsage = ::clock();
             return m_pCache[i].pData;
         }
     }
@@ -262,7 +263,7 @@ void* CDiskImage::GetBlock(int nBlock)
         {
             if (!m_pCache[i].bChanged)
             {
-                DWORD diff = GetTickCount() - m_pCache[i].dwLastUsage;
+                DWORD diff = ::clock() - m_pCache[i].cLastUsage;
                 if (diff > maxdiff)
                 {
                     maxdiff = diff;
@@ -289,7 +290,7 @@ void* CDiskImage::GetBlock(int nBlock)
     m_pCache[iEmpty].bChanged = false;
     m_pCache[iEmpty].pData = ::malloc(RT11_BLOCK_SIZE);
     ::memset(m_pCache[iEmpty].pData, 0, RT11_BLOCK_SIZE);
-    m_pCache[iEmpty].dwLastUsage = ::GetTickCount();
+    m_pCache[iEmpty].cLastUsage = ::clock();
 
     // Load the block data
     long foffset = GetBlockOffset(nBlock);
@@ -310,8 +311,8 @@ void CDiskImage::MarkBlockChanged(int nBlock)
     {
         if (m_pCache[i].nBlock != nBlock) continue;
 
-        m_pCache[i].bChanged = TRUE;
-        m_pCache[i].dwLastUsage = ::GetTickCount();
+        m_pCache[i].bChanged = true;
+        m_pCache[i].cLastUsage = ::clock();
         break;
     }
 }
@@ -614,7 +615,7 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
     //TODO: Проверка, не слишком ли длинный файл для этого тома
 
     // Выделяем память и считываем данные файла
-    PVOID pFileData = ::malloc(dwFileSize);
+    void* pFileData = ::malloc(dwFileSize);
     memset(pFileData, 0, dwFileSize);
     ::fseek(fpFile, 0, SEEK_SET);
     size_t lBytesRead = ::fread(pFileData, 1, lFileLength, fpFile);
@@ -663,7 +664,7 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
     PrintTableFooter();
 
     // Определяем, нужна ли новая запись каталога
-    BOOL okNeedNewCatalogEntry = (pFileEntry->length != nFileSizeBlocks);
+    bool okNeedNewCatalogEntry = (pFileEntry->length != nFileSizeBlocks);
     CVolumeCatalogEntry* pEmptyEntry = NULL;
     if (okNeedNewCatalogEntry)
     {
