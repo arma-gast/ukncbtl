@@ -103,6 +103,7 @@ CDiskImage::CDiskImage()
 {
     m_okReadOnly = false;
     m_fpFile = NULL;
+    m_okCloseFile = true;
     m_lStartOffset = 0;
     m_nTotalBlocks = m_nCacheBlocks = 0;
     m_pCache = NULL;
@@ -113,6 +114,7 @@ CDiskImage::~CDiskImage()
     Detach();
 }
 
+// Open the specified disk image file
 bool CDiskImage::Attach(LPCTSTR sImageFileName)
 {
     // Определяем, это .dsk-образ или .rtd-образ - по расширению файла
@@ -120,6 +122,7 @@ bool CDiskImage::Attach(LPCTSTR sImageFileName)
     LPCTSTR sImageFilenameExt = wcsrchr(sImageFileName, _T('.'));
     if (sImageFilenameExt != NULL && _wcsicmp(sImageFilenameExt, _T(".rtd")) == 0)
         m_lStartOffset = NETRT11_IMAGE_HEADER_SIZE;
+    //NOTE: Можно также определять по длине файла: кратна 512 -- .dsk, длина минус 256 кратна 512 -- .rtd
 
     // Try to open as Normal first, then as ReadOnly
     m_okReadOnly = false;
@@ -137,6 +140,28 @@ bool CDiskImage::Attach(LPCTSTR sImageFileName)
     long lFileSize = ::ftell(m_fpFile);
     m_nTotalBlocks = lFileSize / RT11_BLOCK_SIZE;
 
+    this->PostAttach();
+
+    return true;
+}
+
+// Use the given area of the file as a disk image; do not close the file in Detach() method.
+bool CDiskImage::Attach(FILE* fpfile, long offset, int blocks, bool readonly)
+{
+    m_fpFile = fpfile;
+    m_okCloseFile = false;
+    m_okReadOnly = readonly;
+    m_lStartOffset = offset;
+    m_nTotalBlocks = blocks;
+
+    this->PostAttach();
+
+    return true;
+}
+
+// Actions at the end of Attach() method
+void CDiskImage::PostAttach()
+{
     // Allocate memory for the cache
     m_nCacheBlocks = 1024;  //NOTE: For up to 1024 blocks, for 512K of data
     if (m_nCacheBlocks > m_nTotalBlocks) m_nCacheBlocks = m_nTotalBlocks;
@@ -145,12 +170,11 @@ bool CDiskImage::Attach(LPCTSTR sImageFileName)
 
     // Initial read: fill half of the cache
     int nBlocks = 10;
+    if (nBlocks > m_nTotalBlocks) nBlocks = m_nTotalBlocks;
     for (int i = 1; i <= nBlocks; i++)
     {
         GetBlock(i);
     }
-
-    return true;
 }
 
 void CDiskImage::Detach()
@@ -159,7 +183,8 @@ void CDiskImage::Detach()
     {
         FlushChanges();
 
-        ::fclose(m_fpFile);
+        if (m_okCloseFile)
+            ::fclose(m_fpFile);
         m_fpFile = NULL;
 
         // Free cached blocks data

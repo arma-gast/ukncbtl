@@ -53,6 +53,7 @@ class CDiskImage
 {
 protected:
     FILE*           m_fpFile;
+    bool            m_okCloseFile;   // true - close m_fpFile in Detach(), false - do not close it
     bool            m_okReadOnly;
     long            m_lStartOffset;  // First block start offset in the image file
     int             m_nTotalBlocks;  // Total blocks in the image
@@ -66,6 +67,7 @@ public:
 
 public:
     bool Attach(LPCTSTR sFileName);
+    bool Attach(FILE* fpfile, long offset, int blocks, bool readonly);
     void Detach();
 
 public:
@@ -85,6 +87,7 @@ public:
     void AddFileToImage(LPCTSTR sFileName);
 
 private:
+    void PostAttach();
     long GetBlockOffset(int nBlock) const;
 
 };

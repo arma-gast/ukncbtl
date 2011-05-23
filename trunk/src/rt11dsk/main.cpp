@@ -30,6 +30,9 @@ void DoHardInvert();
 void DoHardList();
 void DoHardExtractPartition();
 void DoHardUpdatePartition();
+void DoHardPartitionList();
+void DoHardPartitionExtractFile();
+void DoHardPartitionAddFile();
 
 
 //////////////////////////////////////////////////////////////////////
@@ -50,13 +53,16 @@ struct CommandInfo
 }
 static g_CommandInfos[] =
 {
-    { _T("l"),  false,  DoDiskList              },
-    { _T("e"),  false,  DoDiskExtractFile       },
-    { _T("a"),  false,  DoDiskAddFile           },
-    { _T("hi"), true,   DoHardInvert            },
-    { _T("hl"), true,   DoHardList              },
-    { _T("hx"), true,   DoHardExtractPartition  },
-    { _T("hu"), true,   DoHardUpdatePartition   },
+    { _T("l"),    false,  DoDiskList                    },
+    { _T("e"),    false,  DoDiskExtractFile             },
+    { _T("a"),    false,  DoDiskAddFile                 },
+    { _T("hi"),   true,   DoHardInvert                  },
+    { _T("hl"),   true,   DoHardList                    },
+    { _T("hx"),   true,   DoHardExtractPartition        },
+    { _T("hu"),   true,   DoHardUpdatePartition         },
+    { _T("hpl"),  true,   DoHardPartitionList           },
+    { _T("hpe"),  true,   DoHardPartitionExtractFile    },
+    { _T("hpa"),  true,   DoHardPartitionAddFile        },
 };
 
 CDiskImage      g_diskimage;
@@ -84,6 +90,9 @@ void PrintUsage()
     wprintf(_T("    rt11dsk hl <HddImage>  - list HDD image partitions\n"));
     wprintf(_T("    rt11dsk hx <HddImage> <Partn> <FileName>  - extract partition to file\n"));
     wprintf(_T("    rt11dsk hu <HddImage> <Partn> <FileName>  - update partition from the file\n"));
+    wprintf(_T("    rt11dsk hpl <HddImage> <Partn>  - list partition contents\n"));
+    wprintf(_T("    rt11dsk hpe <HddImage> <Partn> <FileName>  - extract file from the partition\n"));
+    wprintf(_T("    rt11dsk hpa <HddImage> <Partn> <FileName>  - add file to the partition\n"));
     wprintf(_T("  Parameters:\n"));
     wprintf(_T("    <ImageFile> is UKNC disk image in .dsk or .rtd format\n"));
     wprintf(_T("    <HddImage>  is UKNC hard disk image file name\n"));
@@ -210,18 +219,42 @@ void DoDiskList()
 
 void DoDiskExtractFile()
 {
+    if (g_sFileName == NULL)
+    {
+        wprintf(_T("Output file name expected.\n"));
+        return;
+    }
+
     g_diskimage.DecodeImageCatalog();
     g_diskimage.SaveEntryToExternalFile(g_sFileName);
 }
 
 void DoDiskAddFile()
 {
+    if (g_sFileName == NULL)
+    {
+        wprintf(_T("Input file name expected.\n"));
+        return;
+    }
+
+    if (g_diskimage.IsReadOnly())
+    {
+        wprintf(_T("Cannot perform the operation: disk image file is read-only.\n"));
+        return;
+    }
+
     g_diskimage.DecodeImageCatalog();
     g_diskimage.AddFileToImage(g_sFileName);
 }
 
 void DoHardInvert()
 {
+    if (g_hardimage.IsReadOnly())
+    {
+        wprintf(_T("Cannot perform the operation: hard disk image file is read-only.\n"));
+        return;
+    }
+
     g_hardimage.PrintImageInfo();
     wprintf(_T("\n"));
     g_hardimage.InvertImage();
@@ -229,6 +262,12 @@ void DoHardInvert()
 
 void DoHardList()
 {
+    if (!g_hardimage.IsChecksum())
+    {
+        wprintf(_T("Cannot perform the operation: home block checksum is incorrect.\n"));
+        return;
+    }
+
     g_hardimage.PrintImageInfo();
     wprintf(_T("\n"));
     g_hardimage.PrintPartitionTable();
@@ -248,6 +287,12 @@ void DoHardExtractPartition()
         return;
     }
 
+    if (!g_hardimage.IsChecksum())
+    {
+        wprintf(_T("Cannot perform the operation: home block checksum is incorrect.\n"));
+        return;
+    }
+
     g_hardimage.SavePartitionToFile(g_nPartition, g_sFileName);
 }
 
@@ -264,7 +309,106 @@ void DoHardUpdatePartition()
         return;
     }
 
+    if (g_hardimage.IsReadOnly())
+    {
+        wprintf(_T("Cannot perform the operation: hard disk image file is read-only.\n"));
+        return;
+    }
+    if (!g_hardimage.IsChecksum())
+    {
+        wprintf(_T("Cannot perform the operation: home block checksum is incorrect.\n"));
+        return;
+    }
+
     g_hardimage.UpdatePartitionFromFile(g_nPartition, g_sFileName);
+}
+
+void DoHardPartitionList()
+{
+    if (g_nPartition < 0)
+    {
+        wprintf(_T("Partition number expected.\n"));
+        return;
+    }
+
+    if (!g_hardimage.IsChecksum())
+    {
+        wprintf(_T("Cannot perform the operation: home block checksum is incorrect.\n"));
+        return;
+    }
+
+    if (!g_hardimage.PrepareDiskImage(g_nPartition, &g_diskimage))
+    {
+        wprintf(_T("Failed to prepare partition disk image.\n"));
+        return;
+    }
+
+    g_diskimage.DecodeImageCatalog();
+    g_diskimage.PrintCatalogDirectory();
+}
+
+void DoHardPartitionExtractFile()
+{
+    if (g_nPartition < 0)
+    {
+        wprintf(_T("Partition number expected.\n"));
+        return;
+    }
+    if (g_sFileName == NULL)
+    {
+        wprintf(_T("Output file name expected.\n"));
+        return;
+    }
+
+    if (!g_hardimage.IsChecksum())
+    {
+        wprintf(_T("Cannot perform the operation: home block checksum is incorrect.\n"));
+        return;
+    }
+
+    if (!g_hardimage.PrepareDiskImage(g_nPartition, &g_diskimage))
+    {
+        wprintf(_T("Failed to prepare partition disk image.\n"));
+        return;
+    }
+
+    g_diskimage.DecodeImageCatalog();
+    g_diskimage.SaveEntryToExternalFile(g_sFileName);
+}
+
+void DoHardPartitionAddFile()
+{
+    if (g_nPartition < 0)
+    {
+        wprintf(_T("Partition number expected.\n"));
+        return;
+    }
+    if (g_sFileName == NULL)
+    {
+        wprintf(_T("Input file name expected.\n"));
+        return;
+    }
+
+    if (!g_hardimage.IsChecksum())
+    {
+        wprintf(_T("Cannot perform the operation: home block checksum is incorrect.\n"));
+        return;
+    }
+
+    if (g_diskimage.IsReadOnly())
+    {
+        wprintf(_T("Cannot perform the operation: disk image file is read-only.\n"));
+        return;
+    }
+
+    if (!g_hardimage.PrepareDiskImage(g_nPartition, &g_diskimage))
+    {
+        wprintf(_T("Failed to prepare partition disk image.\n"));
+        return;
+    }
+
+    g_diskimage.DecodeImageCatalog();
+    g_diskimage.AddFileToImage(g_sFileName);
 }
 
 
