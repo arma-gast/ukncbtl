@@ -327,11 +327,11 @@ void CDiskImage::DecodeImageCatalog()
     if (nFirstCatalogBlock == 0) nFirstCatalogBlock = 6;
     m_volumeinfo.firstcatalogblock = nFirstCatalogBlock;
     m_volumeinfo.systemversion = pHomeSector[0726];
-    LPCSTR sVolumeId = (LPCSTR) pHomeSector + 0730;
+    const char* sVolumeId = (const char*) pHomeSector + 0730;
     strncpy_s(m_volumeinfo.volumeid, 13, sVolumeId, 12);
-    LPCSTR sOwnerName = (LPCSTR) pHomeSector + 0744;
+    const char* sOwnerName = (const char*) pHomeSector + 0744;
     strncpy_s(m_volumeinfo.ownername, 13, sOwnerName, 12);
-    LPCSTR sSystemId = (LPCSTR) pHomeSector + 0760;
+    const char* sSystemId = (const char*) pHomeSector + 0760;
     strncpy_s(m_volumeinfo.systemid, 13, sSystemId, 12);
 
     // Разбор первого блока каталога
@@ -606,7 +606,7 @@ void CDiskImage::AddFileToImage(LPCTSTR sFileName)
 
     // Определяем длину файла, с учетом округления до полного блока
     ::fseek(fpFile, 0, SEEK_END);
-    LONG lFileLength = ::ftell(fpFile);  // Точная длина файла
+    long lFileLength = ::ftell(fpFile);  // Точная длина файла
     WORD nFileSizeBlocks =  // Требуемая ширина свободного места в блоках
         (WORD) (lFileLength + RT11_BLOCK_SIZE - 1) / RT11_BLOCK_SIZE;
     DWORD dwFileSize =  // Длина файла с учетом округления до полного блока

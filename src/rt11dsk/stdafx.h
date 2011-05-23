@@ -7,15 +7,9 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
-
 // Windows Header Files:
-#include <windows.h>
-
-//typedef unsigned long       DWORD;
-//typedef unsigned char       BYTE;
-//typedef unsigned short      WORD;
-//typedef long                LONG;
+//#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+//#include <windows.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,7 +18,7 @@
 #include <memory.h>
 #include <string.h>
 
-//typedef const TCHAR* LPCTSTR;
-//typedef const char* LPCSTR;
-
-// TODO: reference additional headers your program requires here
+typedef unsigned long   DWORD;
+typedef unsigned char   BYTE;
+typedef unsigned short  WORD;
+typedef const TCHAR* LPCTSTR;
