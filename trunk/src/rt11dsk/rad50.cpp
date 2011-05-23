@@ -134,6 +134,6 @@ void rtDateStr(WORD date, TCHAR* str)
     if (month < 1 || month > 12)
         wcscpy_s(str, 10, _T("  -BAD-  "));
     else
-        wsprintf( str, _T("%02d-%3S-%02d"), day, months[month], year );
+        swprintf(str, 10, _T("%02d-%3S-%02d"), day, months[month], year );
 }
 
