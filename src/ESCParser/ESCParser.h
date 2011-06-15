@@ -6,10 +6,6 @@
 
 extern unsigned short RobotronFont[];
 
-// Printing qualities
-#define DRAFTmode 0
-#define LQmode    1
-
 class EscInterpreter
 {
 private:
@@ -18,14 +14,18 @@ private:
     long m_datalength;
     std::ostream& m_output;
     long m_datapos;
-    int  m_x, m_y;  // Current position
-    int  m_px, m_py;
+    int  m_x, m_y;      // Current position
+    int  m_px, m_py;    // Scale
     int  m_marginleft, m_margintop;
     int  m_shiftx, m_shifty;  // Shift for text printout
-    int  m_printmode;
+    bool m_printmode;   // false - DRAFT, true - LQ
     bool m_endofpage;
-    bool m_widefont;  // Шрифт вразрядку
-    bool m_doublestrike;  // Двойная печать
+    bool m_fontsp;      // Шрифт вразрядку
+    bool m_fontdo;      // Двойная печать
+    bool m_fontfe;      // Жирный шрифт
+    bool m_fontks;      // Сжатый шрифт
+    bool m_fontel;      // Шрифт "элита"
+    bool m_fontun;      // Подчеркивание
 
 public:
     EscInterpreter(const void* pdata, long datalength, std::ostream& output);
@@ -35,6 +35,7 @@ public:
 
 protected:
     unsigned char GetNextByte();
+    void UpdateShiftX();
     void PrinterReset();
     void printGR9(int dx);
     void printGR24(int dx);

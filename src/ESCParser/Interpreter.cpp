@@ -9,9 +9,6 @@ EscInterpreter::EscInterpreter(const void* pdata, long datalength, std::ostream&
     m_datalength = datalength;
     m_datapos = 0;
 
-    //TODO: Настраивать режимы по DIP-переключателям
-    m_widefont = m_doublestrike = false;
-
     m_marginleft = m_margintop = 160;
 
     PrinterReset();
@@ -29,12 +26,27 @@ void EscInterpreter::PrinterReset()
 {
     m_x = m_y = 0;
     m_px = m_py = 3;
-    m_printmode = DRAFTmode;
-    m_shiftx = 720/10;  // 10 char/inch
+    m_printmode = false;
+
+    //TODO: Настраивать режимы по DIP-переключателям
+    m_fontsp = m_fontdo = m_fontfe = m_fontks = m_fontel = m_fontun = false;
     m_shifty = 720/6;   // 6 lines/inch
-    m_widefont = false;
+    UpdateShiftX();
 }
 
+void EscInterpreter::UpdateShiftX()
+{
+    m_shiftx = 720/10;  // Обычный интервал
+    if (m_fontel)
+        m_shiftx = 720/12;  // Элита
+    else if (m_fontks)
+        m_shiftx = 720/17;  // Сжатый
+
+    if (m_fontsp)  // Шрифт вразрядку
+        m_shiftx *= 2;
+}
+
+// Интерпретировать следующий токен
 bool EscInterpreter::InterpretNext()
 {
     if (IsEndOfFile()) return false;
@@ -47,15 +59,15 @@ bool EscInterpreter::InterpretNext()
         case 24/*CAN*/:
             m_endofpage = true;
             return false; //Конец страницы
-        case 8/*BS*/: //BackSpace - сдвиг на 1 символ назад
+        case 8/*BS*/: // Backspace - сдвиг на 1 символ назад
             m_x -= m_shiftx;  if (m_x < 0) m_x = 0;
             break;
-        case 9/*HT*/: //Горизонтальная табуляция - реализован частный случай
-            //переустановка позиций табуляции игнорируется
+        case 9/*HT*/: // Горизонтальная табуляция - реализован частный случай
+            //NOTE: переустановка позиций табуляции игнорируется
             m_x += m_shiftx * 8;
             m_x = (m_x / (m_shiftx * 8)) * (m_shiftx * 8);
             break;
-        case 10/*LF*/: //LineFeed - сдвиг к следующей строке
+        case 10/*LF*/: // Line Feed - сдвиг к следующей строке
             m_y += m_shifty;
             return true;
         case 11/*VT*/: //Вертикальная табуляция - в частном случае удовлетворяет описанию.
@@ -65,22 +77,24 @@ bool EscInterpreter::InterpretNext()
         case 12/*FF*/: // Form Feed - !!! доделать
             m_endofpage = true;
             return false;
-        case 13/*CR*/: //CarriageReturn - возврат каретки
+        case 13/*CR*/: // Carriage Return - возврат каретки
             m_x = 0;
             break;
         case 14/*SO*/: // Включение шрифта вразрядку
-            m_widefont = true;
-            m_shiftx = 720/10 * 2;
+            m_fontsp = true;
+            UpdateShiftX();
             break;
-        case 15/*SI*/: //Выбрать 17.1 символов на дюйм
-            m_shiftx = (720 * 10) / 171;
+        case 15/*SI*/: // Включение сжатого шрифта (17.1 символов на дюйм)
+            m_fontks = true;
+            UpdateShiftX();
             break;
-        case 18/*DC2*/: //Выбрать 10 символов на дюйм
-            m_shiftx = 720/10;
+        case 18/*DC2*/: // Выключение сжатого шрифта
+            m_fontks = false;
+            UpdateShiftX();
             break;
         case 20/*DC4*/: // Выключение шрифта вразрядку
-            m_widefont = false;
-            m_shiftx = 720/10;
+            m_fontsp = false;
+            UpdateShiftX();
             break;
         case 27/*ESC*/:  //Expanded Function Codes
             return InterpretEscape();
@@ -95,25 +109,31 @@ bool EscInterpreter::InterpretNext()
     return true;
 }
 
+// Интерпретировать Escape-последовательность
 bool EscInterpreter::InterpretEscape()
 {
     unsigned char ch = GetNextByte();
     switch (ch)
     {
-        case 'U': break; //Однонаправленная печать - игнорировать
+        case 'U': // Печать в одном или двух направлениях
+            GetNextByte();  // Игнорируем
+            break;
         case 'x': // Выбор качества
-            m_printmode = GetNextByte();
+            m_printmode = (GetNextByte() != 0);
             break;
 
         // Группа функций character pitch
-        case 'P':
-            m_shiftx = 720/10; // 10 cpi
+        case 'P':  // Включение шрифта "пика"
+            m_fontel = false;
+            UpdateShiftX();
             break;
-        case 'M':
-            m_shiftx = 720/12; // 12 cpi
+        case 'M':  // Включение шрифта "элита" (12 символов на дюйм)
+            m_fontel = true;
+            UpdateShiftX();
             break;
-        case 15/*SI*/:
-            m_shiftx = 720/17; // 17 cpi
+        case 15/*SI*/:  // Включение сжатого шрифта
+            m_fontks = true;
+            UpdateShiftX();
             break;
 
         // Группа кодов line feed
@@ -153,6 +173,7 @@ bool EscInterpreter::InterpretEscape()
         case 'Q': //Set right margin - игнорировать ???
             GetNextByte();
             break;
+
         //Bit image graphics mode !!! - недоделано
         case 'K': /* 8-bit single density graphics */
         case 'L': /* the same */
@@ -223,8 +244,8 @@ bool EscInterpreter::InterpretEscape()
             m_x = 0;    /* repositions the print head to the left most column */
             break;
         case 14/*SO*/: // Включение шрифта вразрядку
-            m_widefont = true;
-            m_shiftx = 720/10 * 2;
+            m_fontsp = true;
+            UpdateShiftX();
             break;
         /* inter character space */
         case 32/*SP*/:
@@ -246,21 +267,22 @@ bool EscInterpreter::InterpretEscape()
         break;
         
         /* CHARACTER CONTROL CODES */
-        /* emphasized print */
-        case 'E': /* !!! */
+        case 'E': // Включение жирного шрифта
+            m_fontfe = true;
+            //TODO: m_shiftx = ???;
             break;
-        case 'F': /* !!! */
+        case 'F': // Выключение жирного шрифта
+            m_fontfe = false;
+            //TODO: m_shiftx = ???;
             break;
-        /* double strike print */
         case 'G':  // Включение двойной печати
-            m_doublestrike = true;
+            m_fontdo = true;
             break;
         case 'H':  // Выключение двойной печати
-            m_doublestrike = false;
+            m_fontdo = false;
             break;
-        /* underline */
-        case '-': /* !!! */
-            GetNextByte();
+        case '-': // Подчеркивание
+            m_fontun = (GetNextByte() != 0);
             break;
         /* super/subscript character */
         case 'S': /* !!! */
@@ -272,9 +294,16 @@ bool EscInterpreter::InterpretEscape()
         case 'W': /* !!! */
             GetNextByte();
             break;
-        /* combination print */
-        case '!': /* set print mode !!! */
-            GetNextByte();
+        case '!': // Выбор вида шрифта
+            {
+                unsigned char fontbits = GetNextByte();
+                m_fontel = (fontbits & 1) != 0;
+                m_fontks = ((fontbits & 4) != 0) && !m_fontel;
+                m_fontfe = ((fontbits & 8) != 0) && !m_fontel;
+                m_fontdo = (fontbits & 16) != 0;
+                m_fontsp = (fontbits & 32) != 0;
+                UpdateShiftX();
+            }
             break;
         /* italic print */
         case '4': /* set italics */
@@ -356,22 +385,29 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
 {
     if (ch < 32 || ch > 204) return;
 
+    //TODO: Учитывать текущую кодировку
     const unsigned short* pchardata = RobotronFont + int(ch - 32) * 9;
 
-    float step = float(m_shiftx) / 11.0f;
+    float step = float(m_shiftx) / 11.0f;  // Шаг по горизонтали
     for (int line = 0; line < 9; line++)
     {
         for (int col = 0; col < 9; col++)
         {
             unsigned short bit = (pchardata[line] >> col) & 1;
+            if (m_fontun && line == 8) bit = 1;
             if (!bit) continue;
 
             DrawStrike(m_x + col * step, float(m_y + line * 12));
-            if (m_widefont)
+            if (m_fontsp)
                 DrawStrike(m_x + (col + 1.0f) * step, float(m_y + line * 12));
-            //TODO: Учитывать m_widefont
+
+            //TODO: Учитывать m_fontfe (жирный шрифт)
         }
     }
+
+    // Для m_fontun добивать последнюю точку
+    if (m_fontun)
+        DrawStrike(m_x + 9.0f * step, float(m_y + 8 * 12));
 }
 
 void EscInterpreter::DrawStrike(float x, float y)
@@ -380,5 +416,5 @@ void EscInterpreter::DrawStrike(float x, float y)
     float cy = (float(m_margintop) + y) / m_py;
     float cr = 6.0f / m_px;
     m_output << "<circle cx=\"" << cx << "\" cy=\"" << cy << "\" r=\"" << cr << "\" />" << std::endl;
-    //TODO: Учитывать m_doublestrike
+    //TODO: Учитывать m_fontdo
 }
