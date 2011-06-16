@@ -4,6 +4,10 @@
 #include "ESCParser.h"
 #include <iostream>
 
+
+//////////////////////////////////////////////////////////////////////
+
+
 const char* g_InputFileName = 0;
 void* g_InputData = 0;
 
@@ -38,10 +42,12 @@ void main(int argc, char* argv[])
 
     ::fclose(fpfile);
 
-    std::cout << "<svg xmlns=\"http://www.w3.org/2000/svg\">" << std::endl;
+    // Prepare output driver
+    OutputDriverPostScript driver(std::cout);
+    driver.WriteBeginning();
 
     // Initialize the emulator
-    EscInterpreter intrpr(g_InputData, filesize, std::cout);
+    EscInterpreter intrpr(g_InputData, filesize, driver);
     // Run the emulator
     while (true)
     {
@@ -49,8 +55,11 @@ void main(int argc, char* argv[])
             break;
     }
 
-    std::cout << "</svg>" << std::endl;
+    driver.WriteEnding();
 
     // Free the memory
     ::free(g_InputData);  g_InputData = 0;
 }
+
+
+//////////////////////////////////////////////////////////////////////
