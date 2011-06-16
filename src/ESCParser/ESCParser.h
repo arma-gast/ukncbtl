@@ -26,6 +26,8 @@ private:
     bool m_fontks;      // Сжатый шрифт
     bool m_fontel;      // Шрифт "элита"
     bool m_fontun;      // Подчеркивание
+    bool m_superscript;
+    bool m_subscript;
 
 public:
     EscInterpreter(const void* pdata, long datalength, std::ostream& output);
