@@ -1,7 +1,11 @@
 
 #include "ESCParser.h"
 
-EscInterpreter::EscInterpreter(const void* pdata, long datalength, std::ostream& output) :
+
+//////////////////////////////////////////////////////////////////////
+
+
+EscInterpreter::EscInterpreter(const void* pdata, long datalength, OutputDriver& output) :
     m_output(output)
 {
     m_pdata = pdata;
@@ -25,7 +29,6 @@ unsigned char EscInterpreter::GetNextByte()
 void EscInterpreter::PrinterReset()
 {
     m_x = m_y = 0;
-    m_px = m_py = 3;
     m_printmode = false;
 
     //TODO: Настраивать режимы по DIP-переключателям
@@ -441,9 +444,13 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
 
 void EscInterpreter::DrawStrike(float x, float y)
 {
-    float cx = (float(m_marginleft) + x) / m_px;
-    float cy = (float(m_margintop) + y) / m_py;
-    float cr = 6.0f / m_px;
-    m_output << "<circle cx=\"" << cx << "\" cy=\"" << cy << "\" r=\"" << cr << "\" />" << std::endl;
+    float cx = float(m_marginleft) + x;
+    float cy = float(m_margintop) + y;
+    float cr = 6.0f;
+
     //TODO: Учитывать m_fontdo
+    m_output.WriteStrike(cx, cy, cr);
 }
+
+
+//////////////////////////////////////////////////////////////////////
