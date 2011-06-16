@@ -32,6 +32,8 @@ void EscInterpreter::PrinterReset()
     m_fontsp = m_fontdo = m_fontfe = m_fontks = m_fontel = m_fontun = false;
     m_shifty = 720/6;   // 6 lines/inch
     UpdateShiftX();
+
+    m_superscript = m_subscript = false;
 }
 
 void EscInterpreter::UpdateShiftX()
@@ -136,12 +138,14 @@ bool EscInterpreter::InterpretEscape()
             UpdateShiftX();
             break;
 
-        // Группа кодов line feed
+        case '0':  // Установка интервала 1/8"
+            m_shifty = 720/8;
+            break;
+        case '1':  // Установка интервала 7/72"
+            m_shifty = 720*7/72;
+            break;
         case '2':
             m_shifty = 720/6; /* set line spacing to 1/6 inch */
-            break;
-        case '0':
-            m_shifty = 720/8; /* set line spacing to 1/8 inch */
             break;
         case 'A':   /* text line spacing */
             m_shifty = (720 * (int)GetNextByte() / 60);
@@ -280,15 +284,21 @@ bool EscInterpreter::InterpretEscape()
             break;
         case 'H':  // Выключение двойной печати
             m_fontdo = false;
+            m_superscript = m_subscript = false;
             break;
         case '-': // Подчеркивание
             m_fontun = (GetNextByte() != 0);
             break;
-        /* super/subscript character */
-        case 'S': /* !!! */
-            GetNextByte();
+
+        case 'S': // Включение печати в верхней или нижней части строки
+            {
+                unsigned char ss = GetNextByte();
+                m_superscript = (ss == 0);
+                m_subscript = (ss == 1);
+            }
             break;
-        case 'T': /* !!! */
+        case 'T': // Выключение печати в верхней или нижней части строки
+            m_superscript = m_subscript = false;
             break;
         /* double width print */
         case 'W': /* !!! */
@@ -389,20 +399,39 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
     const unsigned short* pchardata = RobotronFont + int(ch - 32) * 9;
 
     float step = float(m_shiftx) / 11.0f;  // Шаг по горизонтали
+    float y = float(m_y);
+    if (m_subscript) y += 4 * 12;
+    unsigned short data = 0, prevdata = 0;
     for (int line = 0; line < 9; line++)
     {
+        data = pchardata[line];
+        if ((m_superscript || m_subscript))
+        {
+            if ((line & 1) == 0)
+            {
+                prevdata = data;
+                continue;
+            }
+            else
+            {
+                data |= prevdata;
+            }
+        }
+
         for (int col = 0; col < 9; col++)
         {
-            unsigned short bit = (pchardata[line] >> col) & 1;
+            unsigned short bit = (data >> col) & 1;
             if (m_fontun && line == 8) bit = 1;
             if (!bit) continue;
 
-            DrawStrike(m_x + col * step, float(m_y + line * 12));
+            DrawStrike(m_x + col * step, y);
             if (m_fontsp)
-                DrawStrike(m_x + (col + 1.0f) * step, float(m_y + line * 12));
+                DrawStrike(m_x + (col + 1.0f) * step, y);
 
             //TODO: Учитывать m_fontfe (жирный шрифт)
         }
+
+        y += 12;
     }
 
     // Для m_fontun добивать последнюю точку
