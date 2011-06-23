@@ -22,7 +22,8 @@ EscInterpreter::EscInterpreter(const void* pdata, long datalength, OutputDriver&
     m_datalength = datalength;
     m_datapos = 0;
 
-    m_marginleft = m_margintop = 160;
+    m_marginleft = 320;
+    m_margintop = 160;
 
     PrinterReset();
 }
@@ -46,6 +47,7 @@ void EscInterpreter::PrinterReset()
     UpdateShiftX();
 
     m_superscript = m_subscript = false;
+    m_charset = 0;
 }
 
 void EscInterpreter::UpdateShiftX()
@@ -72,6 +74,7 @@ bool EscInterpreter::InterpretNext()
             break; // Игнорируемые коды
         case 24/*CAN*/:
             m_endofpage = true;
+            m_x = m_y = 0;
             return false; //Конец страницы
         case 8/*BS*/: // Backspace - сдвиг на 1 символ назад
             m_x -= m_shiftx;  if (m_x < 0) m_x = 0;
@@ -90,6 +93,7 @@ bool EscInterpreter::InterpretNext()
             return true;
         case 12/*FF*/: // Form Feed - !!! доделать
             m_endofpage = true;
+            m_x = m_y = 0;
             return false;
         case 13/*CR*/: // Carriage Return - возврат каретки
             m_x = 0;
@@ -246,7 +250,7 @@ bool EscInterpreter::InterpretEscape()
             GetNextByte();  GetNextByte();  GetNextByte();
             break;
         case 'R': /* international character set - игнорировать (???) */
-            GetNextByte();
+            m_charset = GetNextByte();
             break;
         /* MSB control - игнорорировать (???) */
         case '#': break; /* clear most significant bit */
@@ -405,10 +409,18 @@ void EscInterpreter::printGR24(int dx)
 
 void EscInterpreter::PrintCharacter(unsigned char ch)
 {
-    if (ch < 32 || ch > 204) return;
+    if (ch < 32 || ch > 255) return;
+    if (ch < 160 && ch > 126) return;
 
-    //TODO: Учитывать текущую кодировку
-    const unsigned short* pchardata = RobotronFont + int(ch - 32) * 9;
+    // Вычисляем символ знакогенератора по текущему набору символов
+    int charset = m_charset ^ (ch > 128 ? 1 : 0);
+    ch &= 0x7f;
+    int symbol = ch;
+    if (ch >= (unsigned char)'@' && charset != 0)
+        symbol += 68;
+
+    // Получаем адрес символа в знакогенераторе
+    const unsigned short* pchardata = RobotronFont + int(symbol - 32) * 9;
 
     float step = float(m_shiftx) / 11.0f;  // Шаг по горизонтали
     float y = float(m_y);
