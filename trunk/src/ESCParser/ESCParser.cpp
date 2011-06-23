@@ -19,7 +19,7 @@ UKNCBTL. If not, see <http://www.gnu.org/licenses/>. */
 
 const char* g_InputFileName = 0;
 void* g_InputData = 0;
-int g_OutputDriverType = OUTPUT_DRIVER_SVG;
+int g_OutputDriverType = OUTPUT_DRIVER_POSTSCRIPT;
 OutputDriver* g_pOutputDriver = 0;
 
 
@@ -103,19 +103,54 @@ void main(int argc, char* argv[])
         return;
     }
 
-    // Prepare output driver
-    g_pOutputDriver->WriteBeginning();
-
-    // Initialize the emulator
-    EscInterpreter intrpr(g_InputData, filesize, *g_pOutputDriver);
-    // Run the emulator
-    while (true)
+    // First run: calculate total page count
+    int pagestotal = 1;
     {
-        if (!intrpr.InterpretNext())
-            break;
+        OutputDriverStub driverstub(std::cout);
+        EscInterpreter intrpr1(g_InputData, filesize, driverstub);
+        while (true)
+        {
+            if (!intrpr1.InterpretNext())
+            {
+                if (intrpr1.IsEndOfFile())
+                    break;
+
+                pagestotal++;
+            }
+        }
     }
 
-    g_pOutputDriver->WriteEnding();
+    std::cerr << "Pages total: " << pagestotal << std::endl;
+
+    // Second run: output the pages
+    {
+        // Prepare output driver
+        g_pOutputDriver->WriteBeginning(pagestotal);
+        int pageno = 1;
+        std::cerr << "Page " << pageno << std::endl;
+        g_pOutputDriver->WritePageBeginning(pageno);
+
+        // Initialize the emulator
+        EscInterpreter intrpr(g_InputData, filesize, *g_pOutputDriver);
+        // Run the emulator
+        while (true)
+        {
+            if (!intrpr.InterpretNext())
+            {
+                g_pOutputDriver->WritePageEnding();
+
+                if (intrpr.IsEndOfFile())
+                    break;
+
+                pageno++;
+                std::cerr << "Page " << pageno << std::endl;
+
+                g_pOutputDriver->WritePageBeginning(pageno);
+            }
+        }
+
+        g_pOutputDriver->WriteEnding();
+    }
 
     delete g_pOutputDriver;
     g_pOutputDriver = 0;

@@ -34,9 +34,20 @@ public:
     OutputDriver(std::ostream& output) : m_output(output) { }
 
 public:
-    virtual void WriteBeginning() { }  // Overwrite if needed
+    virtual void WriteBeginning(int pagestotal) { }  // Overwrite if needed
     virtual void WriteEnding() { }  // Overwrite if needed
+    virtual void WritePageBeginning(int pageno) { }  // Overwrite if needed
+    virtual void WritePageEnding() { }  // Overwrite if needed
     virtual void WriteStrike(float x, float y, float r) = 0;  // Always overwrite
+};
+
+class OutputDriverStub : public OutputDriver
+{
+public:
+    OutputDriverStub(std::ostream& output) : OutputDriver(output) { };
+
+public:
+    virtual void WriteStrike(float x, float y, float r) { }
 };
 
 class OutputDriverSvg : public OutputDriver
@@ -45,7 +56,7 @@ public:
     OutputDriverSvg(std::ostream& output) : OutputDriver(output) { };
 
 public:
-    virtual void WriteBeginning();
+    virtual void WriteBeginning(int pagestotal);
     virtual void WriteEnding();
     virtual void WriteStrike(float x, float y, float r);
 };
@@ -56,8 +67,10 @@ public:
     OutputDriverPostScript(std::ostream& output) : OutputDriver(output) { };
 
 public:
-    virtual void WriteBeginning();
+    virtual void WriteBeginning(int pagestotal);
     virtual void WriteEnding();
+    virtual void WritePageBeginning(int pageno);
+    virtual void WritePageEnding();
     virtual void WriteStrike(float x, float y, float r);
 };
 
@@ -84,8 +97,9 @@ private:
     bool m_fontks;      // Сжатый шрифт
     bool m_fontel;      // Шрифт "элита"
     bool m_fontun;      // Подчеркивание
-    bool m_superscript;
-    bool m_subscript;
+    bool m_superscript; // Верхний регистр
+    bool m_subscript;   // Нижний регистр
+    unsigned char m_charset;  // Номер набора символов
 
 public:
     EscInterpreter(const void* pdata, long datalength, OutputDriver& output);
