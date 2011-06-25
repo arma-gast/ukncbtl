@@ -17,6 +17,7 @@ extern unsigned short RobotronFont[];
 
 
 //////////////////////////////////////////////////////////////////////
+// Output drivers
 
 enum
 {
@@ -25,6 +26,7 @@ enum
     OUTPUT_DRIVER_POSTSCRIPT = 2,
 };
 
+// Base abstract class for output drivers
 class OutputDriver
 {
 protected:
@@ -34,13 +36,19 @@ public:
     OutputDriver(std::ostream& output) : m_output(output) { }
 
 public:
+    // Write beginning of the document
     virtual void WriteBeginning(int pagestotal) { }  // Overwrite if needed
+    // Write ending of the document
     virtual void WriteEnding() { }  // Overwrite if needed
+    // Write beginning of the page
     virtual void WritePageBeginning(int pageno) { }  // Overwrite if needed
+    // Write ending of the page
     virtual void WritePageEnding() { }  // Overwrite if needed
+    // Write strike by one pin
     virtual void WriteStrike(float x, float y, float r) = 0;  // Always overwrite
 };
 
+// Stub driver, does nothing
 class OutputDriverStub : public OutputDriver
 {
 public:
@@ -50,6 +58,7 @@ public:
     virtual void WriteStrike(float x, float y, float r) { }
 };
 
+// SVG driver, for one-page output only
 class OutputDriverSvg : public OutputDriver
 {
 public:
@@ -61,6 +70,7 @@ public:
     virtual void WriteStrike(float x, float y, float r);
 };
 
+// PostScript driver with multipage support
 class OutputDriverPostScript : public OutputDriver
 {
 public:
@@ -76,16 +86,15 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////
-
+// ESC/P interpreter
 
 class EscInterpreter
 {
-private:
-    const void* m_pdata;
-    const unsigned char* m_pnext;
-    long m_datalength;
+private:  // Input and output
+    std::istream& m_input;
     OutputDriver& m_output;
-    long m_datapos;
+
+private:  // Current state
     int  m_x, m_y;      // Current position
     int  m_marginleft, m_margintop;
     int  m_shiftx, m_shifty;  // Shift for text printout
@@ -102,18 +111,29 @@ private:
     unsigned char m_charset;  // Номер набора символов
 
 public:
-    EscInterpreter(const void* pdata, long datalength, OutputDriver& output);
+    // Constructor
+    EscInterpreter(std::istream& input, OutputDriver& output);
+    // Interpret next character or escape sequense
     bool InterpretNext();
+    // Interpret escape sequence
     bool InterpretEscape();
-    bool IsEndOfFile() const { return m_datapos >= m_datalength; }
+    // is the end of input stream reached
+    bool IsEndOfFile() const { return m_input.eof(); }
 
 protected:
+    // Retrieve a next byte from the input
     unsigned char GetNextByte();
+    // Update m_shiftx according to current font settings
     void UpdateShiftX();
+    // Reset the printer settings
     void PrinterReset();
+    // Print graphics
     void printGR9(int dx);
+    // Print graphics
     void printGR24(int dx);
+    // Print the symbol using current charset
     void PrintCharacter(unsigned char ch);
+    // Draw strike made by one pin
     void DrawStrike(float x, float y);
 };
 

@@ -14,14 +14,9 @@ UKNCBTL. If not, see <http://www.gnu.org/licenses/>. */
 //////////////////////////////////////////////////////////////////////
 
 
-EscInterpreter::EscInterpreter(const void* pdata, long datalength, OutputDriver& output) :
-    m_output(output)
+EscInterpreter::EscInterpreter(std::istream& input, OutputDriver& output) :
+    m_output(output), m_input(input)
 {
-    m_pdata = pdata;
-    m_pnext = (const unsigned char*) pdata;
-    m_datalength = datalength;
-    m_datapos = 0;
-
     m_marginleft = 320;
     m_margintop = 160;
 
@@ -30,9 +25,9 @@ EscInterpreter::EscInterpreter(const void* pdata, long datalength, OutputDriver&
 
 unsigned char EscInterpreter::GetNextByte()
 {
-    unsigned char result = *m_pnext;
-    m_pnext = m_pnext + 1;
-    m_datapos++;
+    if (m_input.eof())
+        return 0;
+    unsigned char result = (unsigned char) m_input.get();
     return result;
 }
 
@@ -50,6 +45,7 @@ void EscInterpreter::PrinterReset()
     m_charset = 0;
 }
 
+// Обновить значение m_shiftx в соответствии с выбранным шрифтом
 void EscInterpreter::UpdateShiftX()
 {
     m_shiftx = 720/10;  // Обычный интервал
@@ -221,6 +217,9 @@ bool EscInterpreter::InterpretEscape()
                 case 4: /* CRT 1 */
                     printGR9(9);
                     break;
+                case 5:
+                    //TODO
+                    break;
                 case 6: /* CRT 2 */
                     printGR9(8);
                     break;
@@ -289,11 +288,11 @@ bool EscInterpreter::InterpretEscape()
         /* CHARACTER CONTROL CODES */
         case 'E': // Включение жирного шрифта
             m_fontfe = true;
-            //TODO: m_shiftx = ???;
+            UpdateShiftX();
             break;
         case 'F': // Выключение жирного шрифта
             m_fontfe = false;
-            //TODO: m_shiftx = ???;
+            UpdateShiftX();
             break;
         case 'G':  // Включение двойной печати
             m_fontdo = true;
@@ -316,9 +315,9 @@ bool EscInterpreter::InterpretEscape()
         case 'T': // Выключение печати в верхней или нижней части строки
             m_superscript = m_subscript = false;
             break;
-        /* double width print */
-        case 'W': /* !!! */
-            GetNextByte();
+        case 'W': // Включение или выключение шрифта вразрядку
+            m_fontsp = (GetNextByte() != 0);
+            UpdateShiftX();
             break;
         case '!': // Выбор вида шрифта
             {
@@ -363,6 +362,7 @@ void EscInterpreter::printGR9(int dx)
 {
     int width = GetNextByte();  // Количество "кусочков" данных о изображении
     width += 256 * (int)GetNextByte();
+
     // Читать и выводить данные
     for (; width > 0; width--)
     {
@@ -384,8 +384,9 @@ void EscInterpreter::printGR9(int dx)
 
 void EscInterpreter::printGR24(int dx)
 {
-    int width = GetNextByte(); //Количество "кусочков" данных о изображении
+    int width = GetNextByte(); // Количество "кусочков" данных о изображении
     width += 256 * (int)GetNextByte();
+
     //Читать и выводить данные
     for (; width > 0; width--)
     {
@@ -425,10 +426,14 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
     float step = float(m_shiftx) / 11.0f;  // Шаг по горизонтали
     float y = float(m_y);
     if (m_subscript) y += 4 * 12;
+
+    // Цикл печати символа по строкам
     unsigned short data = 0, prevdata = 0;
     for (int line = 0; line < 9; line++)
     {
         data = pchardata[line];
+
+        // Особая обработка для над- и под-строчных символов
         if ((m_superscript || m_subscript))
         {
             if ((line & 1) == 0)
@@ -438,7 +443,7 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
             }
             else
             {
-                data |= prevdata;
+                data |= prevdata;  // Объединяем две строки символа в одну
             }
         }
 
@@ -467,9 +472,9 @@ void EscInterpreter::DrawStrike(float x, float y)
 {
     float cx = float(m_marginleft) + x;
     float cy = float(m_margintop) + y;
+    //TODO: Учитывать m_fontdo в радиусе точки
     float cr = 6.0f;
 
-    //TODO: Учитывать m_fontdo
     m_output.WriteStrike(cx, cy, cr);
 }
 
