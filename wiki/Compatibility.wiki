@@ -65,7 +65,8 @@
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Speed.png
 
 Таким образом, на эмуляторе:
-  * для UKNCBTL Beta-13: *608 / 320 / 48 / 40*
+  * для UKNCBTL Beta-13..20: *608 / 320 / 48 / 40*
+  * для UKNCBTL Beta-21: *656 / 320 / 80 / 64*
 
 На реальных УКНЦ цифры несколько отличаются:
   * Alexey Kisly, экземпляр 1: *624 / 240 / 80 / 64*
