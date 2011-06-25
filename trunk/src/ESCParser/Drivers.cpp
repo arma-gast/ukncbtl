@@ -45,6 +45,9 @@ void OutputDriverPostScript::WriteBeginning(int pagestotal)
     m_output << "%!PS-Adobe-2.0" << std::endl;
     m_output << "%%Creator: ESCParser" << std::endl;
     m_output << "%%Pages: " << pagestotal << std::endl;
+
+    // PS procedure used to simplify WriteStrike output
+    m_output << "/dotxyr { newpath 0 360 arc fill } def" << std::endl;
 }
 
 void OutputDriverPostScript::WriteEnding()
@@ -69,7 +72,10 @@ void OutputDriverPostScript::WriteStrike(float x, float y, float r)
     float cx = x / 10.0f;
     float cy = y / 10.0f;
     float cr = r / 10.0f;
-    m_output << "newpath " << cx << " " << cy << " " << cr << " 0 360 arc fill" << std::endl;
+
+    char buffer[24];
+    sprintf_s(buffer, sizeof(buffer), "%.2f %.2f %.1f", cx, cy, cr);
+    m_output << buffer << " dotxyr" << std::endl;
 }
 
 

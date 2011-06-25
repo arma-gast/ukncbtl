@@ -387,7 +387,7 @@ void EscInterpreter::printGR24(int dx)
     int width = GetNextByte(); // Количество "кусочков" данных о изображении
     width += 256 * (int)GetNextByte();
 
-    //Читать и выводить данные
+    // Читать и выводить данные
     for (; width > 0; width--)
     {
         for (unsigned char n = 0; n < 3; n++)
@@ -447,7 +447,7 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
             }
         }
 
-        for (int col = 0; col < 9; col++)
+        for (int col = 0; col < 9; col++)  // Цикл печати точек строки
         {
             unsigned short bit = (data >> col) & 1;
             if (m_fontun && line == 8) bit = 1;
@@ -460,7 +460,7 @@ void EscInterpreter::PrintCharacter(unsigned char ch)
             //TODO: Учитывать m_fontfe (жирный шрифт)
         }
 
-        y += 12;
+        y += 12;  // 12 соответствует 1/60 inch
     }
 
     // Для m_fontun добивать последнюю точку
