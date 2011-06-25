@@ -12,15 +12,18 @@ UKNCBTL. If not, see <http://www.gnu.org/licenses/>. */
 
 #include "ESCParser.h"
 #include <iostream>
+#include <fstream>
 
 
 //////////////////////////////////////////////////////////////////////
-
+// Globals
 
 const char* g_InputFileName = 0;
-void* g_InputData = 0;
 int g_OutputDriverType = OUTPUT_DRIVER_POSTSCRIPT;
 OutputDriver* g_pOutputDriver = 0;
+
+
+//////////////////////////////////////////////////////////////////////
 
 
 bool ParseCommandLine(int argc, char* argv[])
@@ -57,39 +60,27 @@ bool ParseCommandLine(int argc, char* argv[])
     return true;
 }
 
+// Print usage info
+void PrintUsage()
+{
+    std::cerr << "Usage:" << std::endl
+              << "\tESCParser [options] InputFile > OutputFile" << std::endl
+              << "Options:" << std::endl
+              << "\t-ps\tPostScript output with multipage support" << std::endl
+              << "\t-svg\tSVG output, no multipage support" << std::endl;
+}
+
 void main(int argc, char* argv[])
 {
     std::cerr << "ESCParser utility  by Nikita Zimin  " << __DATE__ << " " << __TIME__ << std::endl;
 
     if (!ParseCommandLine(argc, argv))
-        return;  // TODO: Print usage
-
-    // Open and read the file
-    FILE* fpfile = ::fopen(g_InputFileName, "rb");
-    if (fpfile == 0)
     {
-        std::cerr << "Failed to open the input file." << std::endl;
-        return;
-    }
-    
-    // Get file size
-    ::fseek(fpfile, 0, SEEK_END);
-    long filesize = ::ftell(fpfile);
-    ::fseek(fpfile, 0, SEEK_SET);
-
-    // Allocate memory
-    g_InputData = ::malloc(filesize);
-
-    // Read the file
-    size_t bytesread = ::fread(g_InputData, 1, filesize, fpfile);
-    if (bytesread != filesize)
-    {
-        std::cerr << "Failed to read the input file." << std::endl;
+        PrintUsage();
         return;
     }
 
-    ::fclose(fpfile);
-
+    // Choose a proper output driver
     switch (g_OutputDriverType)
     {
     case OUTPUT_DRIVER_SVG:
@@ -106,8 +97,19 @@ void main(int argc, char* argv[])
     // First run: calculate total page count
     int pagestotal = 1;
     {
+        // Prepare the input stream
+        std::ifstream input(g_InputFileName, std::ifstream::in | std::ifstream::binary);
+        if (input.fail())
+        {
+            std::cerr << "Failed to open the input file." << std::endl;
+            return;
+        }
+
+        // Prepare stub driver
         OutputDriverStub driverstub(std::cout);
-        EscInterpreter intrpr1(g_InputData, filesize, driverstub);
+
+        // Run the interpreter to count the pages
+        EscInterpreter intrpr1(input, driverstub);
         while (true)
         {
             if (!intrpr1.InterpretNext())
@@ -124,15 +126,24 @@ void main(int argc, char* argv[])
 
     // Second run: output the pages
     {
-        // Prepare output driver
+        // Prepare the input stream
+        std::ifstream input(g_InputFileName, std::ifstream::in | std::ifstream::binary);
+        if (input.fail())
+        {
+            std::cerr << "Failed to open the input file." << std::endl;
+            return;
+        }
+
+        // Prepare the output driver
         g_pOutputDriver->WriteBeginning(pagestotal);
         int pageno = 1;
         std::cerr << "Page " << pageno << std::endl;
         g_pOutputDriver->WritePageBeginning(pageno);
 
-        // Initialize the emulator
-        EscInterpreter intrpr(g_InputData, filesize, *g_pOutputDriver);
-        // Run the emulator
+        // Initialize the interpreter
+        EscInterpreter intrpr(input, *g_pOutputDriver);
+
+        // Run the interpreter to produce the pages
         while (true)
         {
             if (!intrpr.InterpretNext())
@@ -152,11 +163,9 @@ void main(int argc, char* argv[])
         g_pOutputDriver->WriteEnding();
     }
 
+    // Cleanup
     delete g_pOutputDriver;
     g_pOutputDriver = 0;
-
-    // Free the memory
-    ::free(g_InputData);  g_InputData = 0;
 }
 
 

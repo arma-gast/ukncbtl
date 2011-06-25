@@ -10,8 +10,12 @@ UKNCBTL. If not, see <http://www.gnu.org/licenses/>. */
 
 #include "ESCParser.h"
 
-//////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////
+// SVG driver
+
+//NOTE: The most recent SVG standard is 1.2 tiny. Multipage support appears in 1.2 full.
+// So, currently SVG does not have multipage support, and browsers can't interpret multipage SVGs.
 
 void OutputDriverSvg::WriteBeginning(int pagestotal)
 {
@@ -34,7 +38,7 @@ void OutputDriverSvg::WriteStrike(float x, float y, float r)
 
 
 //////////////////////////////////////////////////////////////////////
-
+// PostScript driver
 
 void OutputDriverPostScript::WriteBeginning(int pagestotal)
 {
@@ -67,7 +71,6 @@ void OutputDriverPostScript::WriteStrike(float x, float y, float r)
     float cr = r / 10.0f;
     m_output << "newpath " << cx << " " << cy << " " << cr << " 0 360 arc fill" << std::endl;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////
