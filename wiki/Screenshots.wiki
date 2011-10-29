@@ -3,7 +3,7 @@
 
 Эмулятор в работе:
 
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-RealSpeed.png
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Started.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Keyboard.png
 
