@@ -9,6 +9,10 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Keyboard.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/QtUkncBtl-20100508-mac.png
 
+Набор символов УКНЦ:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Basic-2.png
+
 Загрузка с дискеты:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Alphaprog-boot.png
