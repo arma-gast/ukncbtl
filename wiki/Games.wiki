@@ -1,0 +1,28 @@
+#summary Игры на УКНЦ.
+#labels Featured
+
+Текстовая игра Королевство Эйфория (KINGOM):
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNC_KINGOM.png
+
+Игра Hot Line (клон Sokoban):
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob-01.png
+
+Игра Замок Гоблинов (клон Lode Runner):
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov-01.png
+
+Игра DIGGER:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Digger.png
+
+Игра CASTLE:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-0.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-1.png
