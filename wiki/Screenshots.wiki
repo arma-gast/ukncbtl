@@ -9,10 +9,6 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Keyboard.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/QtUkncBtl-20100508-mac.png
 
-Набор символов УКНЦ:
-
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Basic-2.png
-
 Загрузка с дискеты:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Alphaprog-boot.png
@@ -25,18 +21,6 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Alphaprog-dir.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Basic-Disk.png
 
-Игра Hot Line (клон Sokoban):
+Набор символов УКНЦ:
 
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob.png
-
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob-01.png
-
-Игра Замок Гоблинов (клон Lode Runner):
-
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov.png
-
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov-01.png
-
-Игра Королевство Эйфория (KINGOM):
-
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNC_KINGOM.png
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Basic-2.png
