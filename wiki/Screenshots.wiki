@@ -1,6 +1,8 @@
 #summary Галерея снимков экрана.
 #labels Featured
 
+_См. также: [Games]_
+
 Эмулятор в работе:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Started.png
