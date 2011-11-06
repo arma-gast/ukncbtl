@@ -24,3 +24,7 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Basic-Disk.png
 Набор символов УКНЦ:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Basic-2.png
+
+Turbo Basic Олега Герасимова:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TurboBasic.png
