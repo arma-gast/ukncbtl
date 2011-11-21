@@ -3,13 +3,19 @@
 
 _См. также: [Games]_
 
-Эмулятор в работе:
+Под Windows:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Started.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Keyboard.png
 
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/QtUkncBtl-20100508-mac.png
+Под Mac OS X:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/QtUkncBtl-20111119-mac.png
+
+Под Ubuntu:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/QtUkncBtl-20111119-ubuntu.png
 
 Загрузка с дискеты:
 
