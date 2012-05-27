@@ -26,3 +26,5 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Digger.png
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-0.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-1.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Vert-0.png
