@@ -5,7 +5,7 @@
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNC_KINGOM.png
 
-Игра Hot Line (клон Sokoban):
+Hot Line (клон Sokoban):
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob.png
 
@@ -17,14 +17,22 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov-01.png
 
-Игра DIGGER:
+DIGGER:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Digger.png
 
-Игра CASTLE:
+CASTLE:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-0.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-1.png
 
+VERT:
+
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Vert-0.png
+
+LAND:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Land-0.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Land-1.png
