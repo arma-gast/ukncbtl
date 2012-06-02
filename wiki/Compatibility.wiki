@@ -7,6 +7,8 @@
   * Встроенный тест (пункт Тестирование загрузочного меню)
   * FTMON: тесты 791401, 791402, 691404
 
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-fodostm1-tests.png
+
 Операционные системы:
   * RT11SJ (DS) V5.01a (sysimage.dsk)
   * RT11SJ (S) V05.02 (sys1002.dsk)
