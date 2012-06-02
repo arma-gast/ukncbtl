@@ -11,6 +11,10 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob-01.png
 
+CHESS:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Chess-1.png
+
 Игра Замок Гоблинов (клон Lode Runner):
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov.png
