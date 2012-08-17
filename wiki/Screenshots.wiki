@@ -40,3 +40,7 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TurboBasic.png
 Пакет инженерной графики TSTLIB:
 
 <wiki:video url="http://www.youtube.com/watch?v=XmflcGDBygY" width=640 height=432/><br />http://youtu.be/XmflcGDBygY
+
+PAF Commander Александра Петросяна:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-PAFCommander.png
