@@ -40,3 +40,13 @@ LAND:
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Land-0.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Land-1.png
+
+Boulder Dash:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-BoulderDash-1.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-BoulderDash-0.png
+
+Текстовая игра "Стань стальной крысой":
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-SteelRat-0.png
