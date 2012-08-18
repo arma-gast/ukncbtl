@@ -37,6 +37,8 @@ Turbo Basic Олега Герасимова:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TurboBasic.png
 
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TurboBasic-4.png
+
 Пакет инженерной графики TSTLIB:
 
 <wiki:video url="http://www.youtube.com/watch?v=XmflcGDBygY" width=640 height=432/><br />http://youtu.be/XmflcGDBygY
