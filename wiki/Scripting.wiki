@@ -1,0 +1,29 @@
+#summary UKNCBTL.Qt scripting.
+#labels Featured
+
+= Скрипты в UKNCBTL.Qt =
+
+Начиная с UKNCBTL.Qt версии beta-32 в оболочку эмулятора добавлена поддержка скриптинга. Командой *File > Run Script* выбирается .JS-файл и запускается на выполнение. Язык файла -- ECMAScript, по сути это JavaScript.
+
+Справочник по ECMAScript: http://qt-project.org/doc/qt-4.8/ecmascript.html
+
+В тексте программы может использоваться объект `emulator`, методы которого используются для управления эмулятором UKNCBTL.
+
+== Методы объекта emulator ==
+
+`emulator.reset();` -- Сброс эмулируемой машины.
+
+`emulator.run(100);` -- Работа эмулятора в течение 100 фреймов, каждый фрейм это 1/25 секунды.
+
+`emulator.saveScreenshot("test.png");` -- Сохранение скриншота в формате PNG.
+
+== Пример скрипта ==
+{{{
+emulator.reset();
+
+for (i = 0; i < 10; i++)
+{
+  emulator.run(10);
+  emulator.saveScreenshot('test' + i + '.png');
+}
+}}}
