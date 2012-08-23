@@ -12,6 +12,10 @@
 
 TSTRING         g_ApplicationExePath;
 TSTRING         g_ApplicationIniPath;
+int             g_ScreenWidth = 800;
+int             g_ScreenHeight = 600;
+int             g_ScreenBitsPerPixel = 0;
+bool            g_FullScreen = false;
 SDL_Surface*    g_Screen = NULL;
 SDL_Surface*    g_UkncScreen = NULL;
 int             g_UkncScreenWid = UKNC_SCREEN_WIDTH, g_UkncScreenHei = UKNC_SCREEN_HEIGHT;
@@ -130,21 +134,21 @@ void Main_DrawScreen()
     // Draw UKNC screen
     SDL_Rect src, dst, rc;
     src.x = src.y = dst.x = dst.y = 0;
-    src.w = dst.w = SCREEN_WIDTH;
-    src.h = dst.w = SCREEN_HEIGHT;
-    if (g_UkncScreenWid < SCREEN_WIDTH)
+    src.w = dst.w = g_ScreenWidth;
+    src.h = dst.w = g_ScreenHeight;
+    if (g_UkncScreenWid < g_ScreenWidth)
     {
-        int scrleft = (SCREEN_WIDTH - g_UkncScreenWid) / 2;
+        int scrleft = (g_ScreenWidth - g_UkncScreenWid) / 2;
         src.w = dst.w = g_UkncScreenWid;  dst.x = scrleft;
-        rc.x = rc.y = 0;  rc.w = scrleft;  rc.h = SCREEN_HEIGHT;
+        rc.x = rc.y = 0;  rc.w = scrleft;  rc.h = g_ScreenHeight;
         SDL_FillRect(g_Screen, &rc, 0);
-        rc.x = scrleft + g_UkncScreenWid;  rc.y = 0;  rc.w = SCREEN_WIDTH - scrleft - g_UkncScreenWid;  rc.h = SCREEN_HEIGHT;
+        rc.x = scrleft + g_UkncScreenWid;  rc.y = 0;  rc.w = g_ScreenWidth - scrleft - g_UkncScreenWid;  rc.h = g_ScreenHeight;
         SDL_FillRect(g_Screen, &rc, 0);
     }
-    if (g_UkncScreenHei < SCREEN_HEIGHT)
+    if (g_UkncScreenHei < g_ScreenHeight)
     {
         src.h = dst.h = g_UkncScreenHei;
-        dst.y = (SCREEN_HEIGHT - g_UkncScreenHei) / 2;
+        dst.y = (g_ScreenHeight - g_UkncScreenHei) / 2;
     }
     SDL_BlitSurface(g_UkncScreen, &src, g_Screen, &dst);
     
@@ -162,6 +166,15 @@ bool InitInstance()
 {
     // Parse INI file
     Settings_ParseIniFile(g_ApplicationIniPath);
+
+    // Retrieve general settings
+    g_ScreenWidth = Settings_GetValueInt(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_WIDTH, 800);
+    if (g_ScreenWidth < 320) g_ScreenWidth = 320;
+    g_ScreenHeight = Settings_GetValueInt(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_HEIGHT, 600);
+    if (g_ScreenHeight < 240) g_ScreenHeight = 240;
+    g_ScreenBitsPerPixel = Settings_GetValueInt(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_BITSPERPIXEL, 0);
+    if (g_ScreenBitsPerPixel < 0) g_ScreenBitsPerPixel = 0;
+    g_FullScreen = Settings_GetValueBool(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_FULLSCREEN, false);
 
     // Init SDL video
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -187,7 +200,9 @@ bool InitInstance()
     }
 
     // Prepare screen surface
-    g_Screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BITPERPIXEL, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    int flags = SDL_HWSURFACE | SDL_DOUBLEBUF;
+    if (g_FullScreen) flags |= SDL_FULLSCREEN;
+    g_Screen = SDL_SetVideoMode(g_ScreenWidth, g_ScreenHeight, g_ScreenBitsPerPixel, flags);
     if (g_Screen == NULL)
         return false;  // Unable to set video mode
     g_UkncScreen = SDL_CreateRGBSurface(0, g_UkncScreenWid, g_UkncScreenHei, 32, 0,0,0,0);

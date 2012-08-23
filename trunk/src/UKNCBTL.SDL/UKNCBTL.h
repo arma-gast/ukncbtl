@@ -11,19 +11,20 @@
 #define VERSION_MAJOR           0
 #define VERSION_MINOR           35
 
-#define SCREEN_WIDTH            800
-#define SCREEN_HEIGHT           600
-#define SCREEN_BITPERPIXEL      32
-
 
 /////////////////////////////////////////////////////////////////////////////
 
 
 extern const TCHAR* SETTINGS_SECTION_SDL;
+extern const TCHAR* SETTINGS_SECTION_VIDEO;
 extern const TCHAR* SETTINGS_SECTION_UKNCBTL;
 extern const TCHAR* SETTINGS_KEY_CARTRIDGE1;
 extern const TCHAR* SETTINGS_KEY_FLOPPY0;
 extern const TCHAR* SETTINGS_KEY_HARD1;
+extern const TCHAR* SETTINGS_KEY_WIDTH;
+extern const TCHAR* SETTINGS_KEY_HEIGHT;
+extern const TCHAR* SETTINGS_KEY_BITSPERPIXEL;
+extern const TCHAR* SETTINGS_KEY_FULLSCREEN;
 
 typedef std::map<TSTRING, TSTRING> TSETTINGSKEYVALUEMAP;
 
@@ -33,6 +34,10 @@ void Settings_ParseIniFile(const TSTRING& sFileName);
 TSTRING Settings_GetValue(const TCHAR* section, const TCHAR* key);
 // Get all key-value pairs for the given section
 const TSETTINGSKEYVALUEMAP* Settings_GetKeyValues(const TCHAR* section);
+// Get boolean value for the given section and key
+bool Settings_GetValueBool(const TCHAR* section, const TCHAR* key, bool defaultValue = false);
+// Get integer value for the given section and key
+int Settings_GetValueInt(const TCHAR* section, const TCHAR* key, int defaultValue = 0);
 
 
 /////////////////////////////////////////////////////////////////////////////
