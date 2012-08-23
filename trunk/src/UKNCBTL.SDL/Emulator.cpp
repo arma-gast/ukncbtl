@@ -144,6 +144,31 @@ void Emulator_KeyboardEvent(BYTE keyscan, int pressed)
     m_EmulatorKeyQueueCount++;
 }
 
+WORD Emulator_GetKeyEventFromQueue()
+{
+    if (m_EmulatorKeyQueueCount == 0) return 0;  // Empty queue
+
+    WORD keyevent = m_EmulatorKeyQueue[m_EmulatorKeyQueueBottom];
+    m_EmulatorKeyQueueBottom++;
+    if (m_EmulatorKeyQueueBottom >= KEYEVENT_QUEUE_SIZE)
+        m_EmulatorKeyQueueBottom = 0;
+    m_EmulatorKeyQueueCount--;
+
+    return keyevent;
+}
+
+void Emulator_ProcessKeyEvent()
+{
+    // Process next event in the keyboard queue
+    WORD keyevent = Emulator_GetKeyEventFromQueue();
+    if (keyevent != 0)
+    {
+        BOOL pressed = ((keyevent & 0x8000) != 0);
+        BYTE bkscan = LOBYTE(keyevent);
+        g_pBoard->KeyboardEvent(bkscan, pressed);
+    }
+}
+
 int Emulator_SystemFrame()
 {
     //SoundGen_SetVolume(Settings_GetSoundVolume());
@@ -152,6 +177,7 @@ int Emulator_SystemFrame()
     g_pBoard->SetPPUBreakpoint(0177777);
 
     //ScreenView_ScanKeyboard();
+    Emulator_ProcessKeyEvent();
     
     if (!g_pBoard->SystemFrame())
         return 0;

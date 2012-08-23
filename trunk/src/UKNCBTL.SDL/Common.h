@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 
 //////////////////////////////////////////////////////////////////////
 // Defines for compilation under MinGW and GCC
@@ -70,6 +72,8 @@ typedef int BOOL;
 typedef void *HANDLE;
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG)-1)
 #define DECLARE_HANDLE(name) struct name##__ { int unused; }; typedef struct name##__ *name
+
+typedef std::basic_string<TCHAR> TSTRING;
 
 
 //////////////////////////////////////////////////////////////////////
