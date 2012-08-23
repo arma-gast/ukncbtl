@@ -19,8 +19,11 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-extern const TCHAR* SETTINGS_SECTION_UKNCBTL;
 extern const TCHAR* SETTINGS_SECTION_SDL;
+extern const TCHAR* SETTINGS_SECTION_UKNCBTL;
+extern const TCHAR* SETTINGS_KEY_CARTRIDGE1;
+extern const TCHAR* SETTINGS_KEY_FLOPPY0;
+extern const TCHAR* SETTINGS_KEY_HARD1;
 
 typedef std::map<TSTRING, TSTRING> TSETTINGSKEYVALUEMAP;
 

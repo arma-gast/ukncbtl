@@ -21,5 +21,9 @@ void Emulator_PrepareScreenRGB32(void* pImageBits, const DWORD* colors);
 
 void Emulator_KeyboardEvent(BYTE key, int okPressed);
 
+BOOL Emulator_LoadROMCartridge(int slot, LPCTSTR sFilePath);
+BOOL Emulator_AttachFloppy(int slot, LPCTSTR sFilePath);
+BOOL Emulator_AttachHardDrive(int slot, LPCTSTR sFilePath);
+
 
 //////////////////////////////////////////////////////////////////////

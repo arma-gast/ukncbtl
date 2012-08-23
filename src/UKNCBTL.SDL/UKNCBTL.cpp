@@ -197,6 +197,37 @@ bool InitInstance()
     if (!Emulator_Init())
         return false;
 
+    // Restore settings: cartridges
+    for (int slot = 1; slot < 2; slot++)
+    {
+        TCHAR buffer[11];
+        _tcscpy(buffer, SETTINGS_KEY_CARTRIDGE1);
+        buffer[_tcslen(buffer) - 1] = _T('0') + slot;
+        TSTRING sFileName = Settings_GetValue(SETTINGS_SECTION_UKNCBTL, buffer);
+        if (! sFileName.empty())
+            Emulator_LoadROMCartridge(slot, sFileName.c_str());
+    }
+    // Restore settings: floppies
+    for (int slot = 0; slot < 4; slot++)
+    {
+        TCHAR buffer[11];
+        _tcscpy(buffer, SETTINGS_KEY_FLOPPY0);
+        buffer[_tcslen(buffer) - 1] = _T('0') + slot;
+        TSTRING sFileName = Settings_GetValue(SETTINGS_SECTION_UKNCBTL, buffer);
+        if (! sFileName.empty())
+            Emulator_AttachFloppy(slot, sFileName.c_str());
+    }
+    // Restore settings: hard drives
+    for (int slot = 1; slot < 2; slot++)
+    {
+        TCHAR buffer[11];
+        _tcscpy(buffer, SETTINGS_KEY_HARD1);
+        buffer[_tcslen(buffer) - 1] = _T('0') + slot;
+        TSTRING sFileName = Settings_GetValue(SETTINGS_SECTION_UKNCBTL, buffer);
+        if (! sFileName.empty())
+            Emulator_AttachHardDrive(slot, sFileName.c_str());
+    }
+
     return true;
 }
 
