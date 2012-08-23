@@ -32,143 +32,151 @@ void Main_ExecuteCommand(int command);
 
 /////////////////////////////////////////////////////////////////////////////
 
-enum EventType
+struct
 {
-    EVKEY = 1,
-    EVJOY = 2,
-    EVCMD = 3,
+    int  source;           // Source code: SDLK_Xxx
+    BYTE resultlat;        // Result code: key scan
+    BYTE resultrus;        // Result code: key scan
+}
+static g_KeyMapping[] = {
+    { SDLK_1,           0030, 0030 },
+    { SDLK_2,           0031, 0031 },
+    { SDLK_3,           0032, 0032 },
+    { SDLK_4,           0013, 0013 },
+    { SDLK_5,           0034, 0034 },
+    { SDLK_6,           0035, 0035 },
+    { SDLK_7,           0016, 0016 },
+    { SDLK_8,           0017, 0017 },
+    { SDLK_9,           0177, 0177 },
+    { SDLK_0,           0176, 0176 },
+    { SDLK_BACKSPACE,   0132, 0132 },  // «¡
+    { SDLK_TAB,         0026, 0026 },
+    { SDLK_RETURN,      0153, 0153 },
+    { SDLK_SPACE,       0113, 0113 },
+    { SDLK_DOWN,        0134, 0134 },
+    { SDLK_UP,          0154, 0154 },
+    { SDLK_LEFT,        0116, 0116 },
+    { SDLK_RIGHT,       0133, 0133 },
+    { SDLK_F1,          0010, 0010 },
+    { SDLK_F2,          0011, 0011 },
+    { SDLK_F3,          0012, 0012 },
+    { SDLK_F4,          0014, 0014 },
+    { SDLK_F5,          0015, 0015 },
+    { SDLK_F6,          0172, 0172 },  // œŒÃ
+    { SDLK_F7,          0152, 0152 },  // ”—“
+    { SDLK_F8,          0151, 0151 },  // »—œ
+    { SDLK_F9,          0171, 0171 },  // —¡–Œ—
+    { SDLK_F11,         0004, 0004 },  // —“Œœ
+    { SDLK_INSERT,      0171, 0171 },  // —¡–Œ—
+    { SDLK_PAGEUP,      0004, 0004 },  // —“Œœ
+    { SDLK_DELETE,      0172, 0172 },  // œŒÃ
+    { SDLK_END,         0152, 0152 },  // ”—“
+    { SDLK_PAGEDOWN,    0151, 0151 },  // »—œ
+// Others
+    //TODO: AP2
+    { SDLK_LCTRL,       0046, 0046 },  // LCtrl  =>    ”œ–
+    { SDLK_RCTRL,       0066, 0066 },  // RCtrl  =>    √–¿‘
+    { SDLK_MENU,        0106, 0106 },  // Menu   =>    ¿À‘
+    { SDLK_CAPSLOCK,    0107, 0107 },  // ‘» —
+    { SDLK_LSHIFT,      0105, 0105 },
+    { SDLK_RSHIFT,      0105, 0105 },
+    { SDLK_MINUS,       0175, 0175 },
+    { SDLK_SLASH,       0173, 0173 },  // Slash / ?
+    { SDLK_BACKQUOTE,   0007, 0007 },
+// Changing on RUS/LAT switch
+    { SDLK_a,           0072, 0047 },
+    { SDLK_b,           0076, 0073 },
+    { SDLK_c,           0050, 0111 },
+    { SDLK_d,           0057, 0071 },
+    { SDLK_e,           0033, 0051 },
+    { SDLK_f,           0047, 0072 },
+    { SDLK_g,           0055, 0053 },
+    { SDLK_h,           0156, 0074 },
+    { SDLK_i,           0073, 0036 },
+    { SDLK_j,           0027, 0075 },
+    { SDLK_k,           0052, 0056 },
+    { SDLK_l,           0056, 0057 },
+    { SDLK_m,           0112, 0115 },
+    { SDLK_n,           0054, 0114 },
+    { SDLK_o,           0075, 0037 },
+    { SDLK_p,           0053, 0157 },
+    { SDLK_q,           0067, 0027 },
+    { SDLK_r,           0074, 0052 },
+    { SDLK_s,           0111, 0070 },
+    { SDLK_t,           0114, 0033 },
+    { SDLK_u,           0051, 0055 },
+    { SDLK_v,           0137, 0112 },
+    { SDLK_w,           0071, 0050 },
+    { SDLK_x,           0115, 0110 },
+    { SDLK_y,           0070, 0054 },
+    { SDLK_z,           0157, 0067 },
+    { SDLK_LEFTBRACKET, 0036, 0156 },  // [      =>   [   ’
+    { SDLK_RIGHTBRACKET,0037, 0155 },  // ]      =>   ]   ⁄
+    { SDLK_HOME,        0155, 0174 },  // Home
+    { SDLK_SEMICOLON,   0155, 0174 },
+    { SDLK_COMMA,       0117, 0076 },  // ,<     =>   ,<  ¡·
+    { SDLK_PERIOD,      0135, 0077 },  // .>     =>   .>  ﬁ˛
+    { SDLK_BACKSLASH,   0136, 0135 },  // \|     =>   \|  .>
+    { SDLK_QUOTE,       0077, 0136 },  // '"     =>   @`  ›˝
+    { 0,                0,    0    }
 };
 
-struct KeyMappingStruct
+struct
 {
-    int             sourcetype;         // Source: 0 - none, 1 - keyboard
-    int             sourcecd;           // Source code: keyboard - SDLK_Xxx
-    int             resulttype;         // Result: 0 - none, 1 - UKNC keyboard, 3 - command
-    unsigned int    resultcd;           // Result code: keyboard - key scan, command - ID
+    int source;           // Source code: SDLK_Xxx
+    int result;           // Result code: command ID
+}
+static g_CommandMapping[] = {
+    { SDLK_ESCAPE,      ID_EXIT },
+    { 0,                0 }
 };
 
-static KeyMappingStruct g_KeyMapping[] = {
-// Top line
-    { EVKEY, SDLK_F1,       EVKEY,  0010 },
-    { EVKEY, SDLK_F2,       EVKEY,  0011 },
-    { EVKEY, SDLK_F3,       EVKEY,  0012 },
-    { EVKEY, SDLK_F4,       EVKEY,  0014 },
-    { EVKEY, SDLK_F5,       EVKEY,  0015 },
-    { EVKEY, SDLK_F6,       EVKEY,  0152 },  // œŒÃ
-    { EVKEY, SDLK_F7,       EVKEY,  0152 },  // ”—“
-    { EVKEY, SDLK_F8,       EVKEY,  0151 },  // »—œ
-    { EVKEY, SDLK_F9,       EVKEY,  0171 },  // —¡–Œ—
-    { EVKEY, SDLK_F10,      EVKEY,  0004 },  // —“Œœ
-// 1st line -- digits
-    { EVKEY, SDLK_BACKQUOTE,EVKEY,  0006 },  // AP2
-    { EVKEY, SDLK_SEMICOLON,EVKEY,  0007 },
-    { EVKEY, SDLK_1,        EVKEY,  0030 },
-    { EVKEY, SDLK_2,        EVKEY,  0031 },
-    { EVKEY, SDLK_3,        EVKEY,  0032 },
-    { EVKEY, SDLK_4,        EVKEY,  0013 },
-    { EVKEY, SDLK_5,        EVKEY,  0034 },
-    { EVKEY, SDLK_6,        EVKEY,  0035 },
-    { EVKEY, SDLK_7,        EVKEY,  0016 },
-    { EVKEY, SDLK_8,        EVKEY,  0017 },
-    { EVKEY, SDLK_9,        EVKEY,  0177 },
-    { EVKEY, SDLK_0,        EVKEY,  0176 },
-    { EVKEY, SDLK_MINUS,    EVKEY,  0175 },
-    { EVKEY, SDLK_SLASH,    EVKEY,  0173 },  // Slash / ?
-    { EVKEY, SDLK_BACKSPACE,EVKEY,  0132 },  // «¡
-// 2nd line
-    { EVKEY, SDLK_TAB,      EVKEY,  0026 },
-    { EVKEY, SDLK_j,        EVKEY,  0027 },
-    { EVKEY, SDLK_c,        EVKEY,  0050 },
-    { EVKEY, SDLK_u,        EVKEY,  0051 },
-    { EVKEY, SDLK_k,        EVKEY,  0052 },
-    { EVKEY, SDLK_e,        EVKEY,  0033 },
-    { EVKEY, SDLK_n,        EVKEY,  0054 },
-    { EVKEY, SDLK_g,        EVKEY,  0055 },
-    { EVKEY, SDLK_LEFTBRACKET,EVKEY,0036 },
-    { EVKEY, SDLK_RIGHTBRACKET,EVKEY,0037 },
-    { EVKEY, SDLK_z,        EVKEY,  0157 },
-    { EVKEY, SDLK_h,        EVKEY,  0156 },
-    { EVKEY, SDLK_COLON,    EVKEY,  0155 },
-// 3rd line
-    //TODO: ”œ–
-    { EVKEY, SDLK_f,        EVKEY,  0047 },
-    { EVKEY, SDLK_y,        EVKEY,  0070 },
-    { EVKEY, SDLK_w,        EVKEY,  0071 },
-    { EVKEY, SDLK_a,        EVKEY,  0072 },
-    { EVKEY, SDLK_p,        EVKEY,  0053 },
-    { EVKEY, SDLK_r,        EVKEY,  0074 },
-    { EVKEY, SDLK_o,        EVKEY,  0075 },
-    { EVKEY, SDLK_l,        EVKEY,  0056 },
-    { EVKEY, SDLK_d,        EVKEY,  0057 },
-    { EVKEY, SDLK_v,        EVKEY,  0137 },
-    { EVKEY, SDLK_BACKSLASH,EVKEY,  0136 },  // › / Backslash
-    { EVKEY, SDLK_PERIOD,   EVKEY,  0135 },
-    { EVKEY, SDLK_RETURN,   EVKEY,  0153 },
-// 4th line
-    //TODO: ¿À‘
-    //TODO: √–¿‘
-    { EVKEY, SDLK_q,        EVKEY,  0067 },
-    //TODO: ◊ / ^
-    { EVKEY, SDLK_s,        EVKEY,  0111 },
-    { EVKEY, SDLK_m,        EVKEY,  0112 },
-    { EVKEY, SDLK_i,        EVKEY,  0073 },
-    { EVKEY, SDLK_t,        EVKEY,  0114 },
-    { EVKEY, SDLK_x,        EVKEY,  0115 },
-    { EVKEY, SDLK_b,        EVKEY,  0076 },
-    //TODO: ﬁ / @
-    { EVKEY, SDLK_COMMA,    EVKEY,  0117 },
-// Last line
-    { EVKEY, SDLK_LSHIFT,   EVKEY,  0105 },
-    //TODO: ‘» —
-    { EVKEY, SDLK_SPACE,    EVKEY,  0113 },
-    { EVKEY, SDLK_RSHIFT,   EVKEY,  0105 },
-    { EVKEY, SDLK_DOWN,     EVKEY,  0134 },
-    { EVKEY, SDLK_UP,       EVKEY,  0154 },
-    { EVKEY, SDLK_LEFT,     EVKEY,  0116 },
-    { EVKEY, SDLK_RIGHT,    EVKEY,  0133 },
-// Commands
-    { EVKEY, SDLK_ESCAPE,   EVCMD,  ID_EXIT },
-};
-
-// Search for suitable mapping.
-//  sourcetype: 1 - keyboard, 2 - joystick
-//  ismenu: 0 - search for keyboard/joystick result; 1 - search for menu result
-KeyMappingStruct* FindKeyMapping(int sourcetype, int sourcecd, int ismenu)
+BYTE FindKeyMapping(int sourcecd)
 {
-    for (int i = 0; i < sizeof(g_KeyMapping) / sizeof(KeyMappingStruct); i++)
+    for (int i = 0; ; i++)
     {
-        if (g_KeyMapping[i].sourcetype == sourcetype &&
-            g_KeyMapping[i].sourcecd == sourcecd)
+        if (g_KeyMapping[i].source == 0)
+            break;  // End of the table
+        if (g_KeyMapping[i].source == sourcecd)
         {
-            if (!ismenu &&
-                (g_KeyMapping[i].resulttype == EVKEY || g_KeyMapping[i].resulttype == EVJOY))
-                return g_KeyMapping + i;
-            if (ismenu && g_KeyMapping[i].resulttype == EVCMD)
-                return g_KeyMapping + i;
+            bool latrus = ((g_pBoard->GetKeyboardRegister() & KEYB_LAT) != 0);
+            return latrus ? g_KeyMapping[i].resultlat : g_KeyMapping[i].resultrus;
         }
     }
+    return 0;  // Mapping not found
+}
 
-    return NULL;  // Mapping not found
+int FindCommandMapping(int sourcecd)
+{
+    for (int i = 0; ; i++)
+    {
+        if (g_CommandMapping[i].source == 0)
+            break;  // End of the table
+        if (g_CommandMapping[i].source == sourcecd)
+            return g_CommandMapping[i].result;
+    }
+    return 0;  // Mapping not found
 }
 
 void Main_OnKeyJoyEvent(SDL_Event evt)
 {
-    KeyMappingStruct* mapping;
     int pressed = (evt.type == SDL_KEYDOWN || evt.type == SDL_JOYBUTTONDOWN);
-    int sourcetype = (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) ? EVKEY : EVJOY;
+    //int sourcetype = (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) ? EVKEY : EVJOY;
 
-    mapping = FindKeyMapping(sourcetype, evt.key.keysym.sym, FALSE);
-    if (mapping != NULL)  // UKNC event mapping found
+    //DEBUG
+    if (pressed) printf("KeyDown %d\n", evt.key.keysym.sym);
+
+    BYTE ukncscan = FindKeyMapping(evt.key.keysym.sym);
+    if (ukncscan != 0)  // UKNC event mapping found
     {
-        BYTE result = mapping->resultcd;
-        Emulator_KeyboardEvent(result, pressed);
+        Emulator_KeyboardEvent(ukncscan, pressed);
     }
     else if (pressed)  // Commands works only on key/button press, not release
     {
-        mapping = FindKeyMapping(sourcetype, evt.key.keysym.sym, TRUE);
-        if (mapping != NULL)  // Command mapping found
+        int command = FindCommandMapping(evt.key.keysym.sym);
+        if (command != 0)  // Command mapping found
         {
-            Main_ExecuteCommand(mapping->resultcd);
+            Main_ExecuteCommand(command);
         }
     }
 }
