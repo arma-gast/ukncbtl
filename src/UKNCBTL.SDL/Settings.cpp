@@ -22,6 +22,7 @@ const TCHAR* SETTINGS_KEY_WIDTH         = _T("Width");
 const TCHAR* SETTINGS_KEY_HEIGHT        = _T("Height");
 const TCHAR* SETTINGS_KEY_BITSPERPIXEL  = _T("BitsPerPixel");
 const TCHAR* SETTINGS_KEY_FULLSCREEN    = _T("FullScreen");
+const TCHAR* SETTINGS_KEY_SCREENMODE    = _T("ScreenMode");
 
 
 void Settings_ParseIniFile(const TSTRING& sFileName)

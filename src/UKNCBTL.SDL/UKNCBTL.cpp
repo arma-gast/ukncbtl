@@ -19,11 +19,15 @@ bool            g_FullScreen = false;
 SDL_Surface*    g_Screen = NULL;
 SDL_Surface*    g_UkncScreen = NULL;
 int             g_UkncScreenWid = UKNC_SCREEN_WIDTH, g_UkncScreenHei = UKNC_SCREEN_HEIGHT;
+int             g_ScreenMode = 0;
 int             g_okQuit = FALSE;
 int             g_LastDelay = 0;        //DEBUG: Last delay value, milliseconds
 int             g_LastFps = 0;          //DEBUG: Last Frames-per-Second value
 
 #define FRAME_TICKS             40      // 1000 us / 40 = 25 frames per second
+
+
+void Main_ExecuteCommand(int command);
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -44,21 +48,20 @@ struct KeyMappingStruct
 };
 
 static KeyMappingStruct g_KeyMapping[] = {
-    { EVKEY, SDLK_TAB,      EVKEY,  0026 },
-    { EVKEY, SDLK_RETURN,   EVKEY,  0153 },
-    { EVKEY, SDLK_SPACE,    EVKEY,  0113 },
-    { EVKEY, SDLK_DOWN,     EVKEY,  0134 },
-    { EVKEY, SDLK_UP,       EVKEY,  0154 },
-    { EVKEY, SDLK_LEFT,     EVKEY,  0116 },
-    { EVKEY, SDLK_RIGHT,    EVKEY,  0133 },
+// Top line
     { EVKEY, SDLK_F1,       EVKEY,  0010 },
     { EVKEY, SDLK_F2,       EVKEY,  0011 },
     { EVKEY, SDLK_F3,       EVKEY,  0012 },
     { EVKEY, SDLK_F4,       EVKEY,  0014 },
     { EVKEY, SDLK_F5,       EVKEY,  0015 },
+    { EVKEY, SDLK_F6,       EVKEY,  0152 },  // ÏÎÌ
     { EVKEY, SDLK_F7,       EVKEY,  0152 },  // ÓÑÒ
     { EVKEY, SDLK_F8,       EVKEY,  0151 },  // ÈÑÏ
     { EVKEY, SDLK_F9,       EVKEY,  0171 },  // ÑÁÐÎÑ
+    { EVKEY, SDLK_F10,      EVKEY,  0004 },  // ÑÒÎÏ
+// 1st line -- digits
+    { EVKEY, SDLK_BACKQUOTE,EVKEY,  0006 },  // AP2
+    { EVKEY, SDLK_SEMICOLON,EVKEY,  0007 },
     { EVKEY, SDLK_1,        EVKEY,  0030 },
     { EVKEY, SDLK_2,        EVKEY,  0031 },
     { EVKEY, SDLK_3,        EVKEY,  0032 },
@@ -68,8 +71,63 @@ static KeyMappingStruct g_KeyMapping[] = {
     { EVKEY, SDLK_7,        EVKEY,  0016 },
     { EVKEY, SDLK_8,        EVKEY,  0017 },
     { EVKEY, SDLK_9,        EVKEY,  0177 },
+    { EVKEY, SDLK_0,        EVKEY,  0176 },
+    { EVKEY, SDLK_MINUS,    EVKEY,  0175 },
+    { EVKEY, SDLK_SLASH,    EVKEY,  0173 },  // Slash / ?
+    { EVKEY, SDLK_BACKSPACE,EVKEY,  0132 },  // ÇÁ
+// 2nd line
+    { EVKEY, SDLK_TAB,      EVKEY,  0026 },
+    { EVKEY, SDLK_j,        EVKEY,  0027 },
+    { EVKEY, SDLK_c,        EVKEY,  0050 },
+    { EVKEY, SDLK_u,        EVKEY,  0051 },
+    { EVKEY, SDLK_k,        EVKEY,  0052 },
+    { EVKEY, SDLK_e,        EVKEY,  0033 },
+    { EVKEY, SDLK_n,        EVKEY,  0054 },
+    { EVKEY, SDLK_g,        EVKEY,  0055 },
+    { EVKEY, SDLK_LEFTBRACKET,EVKEY,0036 },
+    { EVKEY, SDLK_RIGHTBRACKET,EVKEY,0037 },
+    { EVKEY, SDLK_z,        EVKEY,  0157 },
+    { EVKEY, SDLK_h,        EVKEY,  0156 },
+    { EVKEY, SDLK_COLON,    EVKEY,  0155 },
+// 3rd line
+    //TODO: ÓÏÐ
+    { EVKEY, SDLK_f,        EVKEY,  0047 },
+    { EVKEY, SDLK_y,        EVKEY,  0070 },
+    { EVKEY, SDLK_w,        EVKEY,  0071 },
+    { EVKEY, SDLK_a,        EVKEY,  0072 },
+    { EVKEY, SDLK_p,        EVKEY,  0053 },
+    { EVKEY, SDLK_r,        EVKEY,  0074 },
+    { EVKEY, SDLK_o,        EVKEY,  0075 },
+    { EVKEY, SDLK_l,        EVKEY,  0056 },
+    { EVKEY, SDLK_d,        EVKEY,  0057 },
+    { EVKEY, SDLK_v,        EVKEY,  0137 },
+    { EVKEY, SDLK_BACKSLASH,EVKEY,  0136 },  // Ý / Backslash
+    { EVKEY, SDLK_PERIOD,   EVKEY,  0135 },
+    { EVKEY, SDLK_RETURN,   EVKEY,  0153 },
+// 4th line
+    //TODO: ÀËÔ
+    //TODO: ÃÐÀÔ
+    { EVKEY, SDLK_q,        EVKEY,  0067 },
+    //TODO: × / ^
+    { EVKEY, SDLK_s,        EVKEY,  0111 },
+    { EVKEY, SDLK_m,        EVKEY,  0112 },
+    { EVKEY, SDLK_i,        EVKEY,  0073 },
+    { EVKEY, SDLK_t,        EVKEY,  0114 },
+    { EVKEY, SDLK_x,        EVKEY,  0115 },
+    { EVKEY, SDLK_b,        EVKEY,  0076 },
+    //TODO: Þ / @
+    { EVKEY, SDLK_COMMA,    EVKEY,  0117 },
+// Last line
     { EVKEY, SDLK_LSHIFT,   EVKEY,  0105 },
+    //TODO: ÔÈÊÑ
+    { EVKEY, SDLK_SPACE,    EVKEY,  0113 },
     { EVKEY, SDLK_RSHIFT,   EVKEY,  0105 },
+    { EVKEY, SDLK_DOWN,     EVKEY,  0134 },
+    { EVKEY, SDLK_UP,       EVKEY,  0154 },
+    { EVKEY, SDLK_LEFT,     EVKEY,  0116 },
+    { EVKEY, SDLK_RIGHT,    EVKEY,  0133 },
+// Commands
+    { EVKEY, SDLK_ESCAPE,   EVCMD,  ID_EXIT },
 };
 
 // Search for suitable mapping.
@@ -105,14 +163,26 @@ void Main_OnKeyJoyEvent(SDL_Event evt)
         BYTE result = mapping->resultcd;
         Emulator_KeyboardEvent(result, pressed);
     }
-    //else if (pressed)  // Commands works only on key/button press, not release
-    //{
-    //    mapping = FindKeyMapping(sourcetype, evt.key.keysym.sym, TRUE);
-    //    if (mapping != NULL)  // Command mapping found
-    //    {
-    //        Main_ExecuteCommand(mapping->resultcd);
-    //    }
-    //}
+    else if (pressed)  // Commands works only on key/button press, not release
+    {
+        mapping = FindKeyMapping(sourcetype, evt.key.keysym.sym, TRUE);
+        if (mapping != NULL)  // Command mapping found
+        {
+            Main_ExecuteCommand(mapping->resultcd);
+        }
+    }
+}
+
+void Main_ExecuteCommand(int command)
+{
+    switch (command)
+    {
+    case ID_EXIT:
+        g_okQuit = TRUE;
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -129,6 +199,7 @@ void Main_DrawScreen()
     SDL_LockSurface(g_UkncScreen);
     void* pPixels = g_UkncScreen->pixels;
     Emulator_PrepareScreenRGB32(pPixels, ScreenView_StandardRGBColors);
+    Screen_UpscaleScreen(pPixels, g_ScreenMode);
     SDL_UnlockSurface(g_UkncScreen);
     
     // Draw UKNC screen
@@ -175,6 +246,14 @@ bool InitInstance()
     g_ScreenBitsPerPixel = Settings_GetValueInt(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_BITSPERPIXEL, 0);
     if (g_ScreenBitsPerPixel < 0) g_ScreenBitsPerPixel = 0;
     g_FullScreen = Settings_GetValueBool(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_FULLSCREEN, false);
+
+    g_ScreenMode = Settings_GetValueInt(SETTINGS_SECTION_VIDEO, SETTINGS_KEY_SCREENMODE, 0);
+    Screen_GetScreenSize(g_ScreenMode, &g_UkncScreenWid, &g_UkncScreenHei);
+    if (g_UkncScreenWid == 0 || g_UkncScreenHei == 0)  // Unallowed mode, reset to default
+    {
+        g_ScreenMode = 0;
+        Screen_GetScreenSize(g_ScreenMode, &g_UkncScreenWid, &g_UkncScreenHei);
+    }
 
     // Init SDL video
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -242,6 +321,20 @@ bool InitInstance()
         if (! sFileName.empty())
             Emulator_AttachHardDrive(slot, sFileName.c_str());
     }
+
+    ////DEBUG: SDL key names
+    //std::map<const char*, int> keys;
+    //for (int code = 0; code < 512; code++)
+    //{
+    //    const char * keyname = SDL_GetKeyName((SDLKey)code);
+    //    if (_stricmp(keyname, "unknown key") != 0)
+    //        keys[keyname] = code;
+    //}
+    //for (std::map<const char*, int>::iterator it = keys.begin(); it != keys.end(); ++it)
+    //{
+    //    printf("%04x\t%s\n", it->second, it->first);
+    //}
+    //printf("TOTAL: %d\n", keys.size());
 
     return true;
 }
