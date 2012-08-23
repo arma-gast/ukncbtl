@@ -335,5 +335,41 @@ void Emulator_PrepareScreenRGB32(void* pImageBits, const DWORD* colors)
     }
 }
 
+BOOL Emulator_LoadROMCartridge(int slot, LPCTSTR sFilePath)
+{
+    // Open file
+    FILE* fpFile = ::_tfsopen(sFilePath, _T("rb"), _SH_DENYWR);
+    if (fpFile == NULL)
+    {
+        AlertWarning(_T("Failed to load ROM cartridge image."));
+        return FALSE;
+    }
+
+    // Allocate memory
+    BYTE* pImage = (BYTE*) ::malloc(24 * 1024);
+
+    size_t dwBytesRead = ::fread(pImage, 1, 24 * 1024, fpFile);
+    ASSERT(dwBytesRead == 24 * 1024);
+
+    g_pBoard->LoadROMCartridge(slot, pImage);
+
+    // Free memory, close file
+    ::free(pImage);
+    ::fclose(fpFile);
+
+    return TRUE;
+}
+
+BOOL Emulator_AttachFloppy(int slot, LPCTSTR sFilePath)
+{
+    return g_pBoard->AttachFloppyImage(slot, sFilePath);
+}
+
+BOOL Emulator_AttachHardDrive(int slot, LPCTSTR sFilePath)
+{
+    return g_pBoard->AttachHardImage(slot, sFilePath);
+}
+
+
 
 //////////////////////////////////////////////////////////////////////
