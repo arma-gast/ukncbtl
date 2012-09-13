@@ -57,5 +57,10 @@ namespace UKNCBTL.UI
         {
             m_Emulator.Reset();
         }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
     }
 }
