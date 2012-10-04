@@ -34,16 +34,16 @@ namespace UKNCBTL.UI
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.pictureBoxScreen = new System.Windows.Forms.PictureBox();
-            this.toolStripButtonRun = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonReset = new System.Windows.Forms.ToolStripButton();
             this.emulatorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStripButtonRun = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonReset = new System.Windows.Forms.ToolStripButton();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.pictureBoxScreen = new System.Windows.Forms.PictureBox();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -89,9 +89,44 @@ namespace UKNCBTL.UI
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // emulatorToolStripMenuItem
+            // 
+            this.emulatorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.runToolStripMenuItem,
+            this.resetToolStripMenuItem});
+            this.emulatorToolStripMenuItem.Name = "emulatorToolStripMenuItem";
+            this.emulatorToolStripMenuItem.Size = new System.Drawing.Size(67, 20);
+            this.emulatorToolStripMenuItem.Text = "Emulator";
+            // 
+            // runToolStripMenuItem
+            // 
+            this.runToolStripMenuItem.Name = "runToolStripMenuItem";
+            this.runToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.runToolStripMenuItem.Text = "Run";
+            // 
+            // resetToolStripMenuItem
+            // 
+            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.resetToolStripMenuItem.Text = "Reset";
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.aboutToolStripMenuItem.Text = "About";
             // 
             // toolStrip1
             // 
@@ -104,23 +139,6 @@ namespace UKNCBTL.UI
             this.toolStrip1.Size = new System.Drawing.Size(676, 25);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
-            // 
-            // timer1
-            // 
-            this.timer1.Interval = 40;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // pictureBoxScreen
-            // 
-            this.pictureBoxScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pictureBoxScreen.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBoxScreen.Location = new System.Drawing.Point(0, 49);
-            this.pictureBoxScreen.MinimumSize = new System.Drawing.Size(640, 288);
-            this.pictureBoxScreen.Name = "pictureBoxScreen";
-            this.pictureBoxScreen.Size = new System.Drawing.Size(676, 336);
-            this.pictureBoxScreen.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.pictureBoxScreen.TabIndex = 3;
-            this.pictureBoxScreen.TabStop = false;
             // 
             // toolStripButtonRun
             // 
@@ -140,40 +158,22 @@ namespace UKNCBTL.UI
             this.toolStripButtonReset.Text = "Reset";
             this.toolStripButtonReset.Click += new System.EventHandler(this.toolStripButtonReset_Click);
             // 
-            // emulatorToolStripMenuItem
+            // timer1
             // 
-            this.emulatorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.runToolStripMenuItem,
-            this.resetToolStripMenuItem});
-            this.emulatorToolStripMenuItem.Name = "emulatorToolStripMenuItem";
-            this.emulatorToolStripMenuItem.Size = new System.Drawing.Size(67, 20);
-            this.emulatorToolStripMenuItem.Text = "Emulator";
+            this.timer1.Interval = 40;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // runToolStripMenuItem
+            // pictureBoxScreen
             // 
-            this.runToolStripMenuItem.Name = "runToolStripMenuItem";
-            this.runToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.runToolStripMenuItem.Text = "Run";
-            // 
-            // resetToolStripMenuItem
-            // 
-            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-            this.resetToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.resetToolStripMenuItem.Text = "Reset";
-            // 
-            // helpToolStripMenuItem
-            // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutToolStripMenuItem});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "Help";
-            // 
-            // aboutToolStripMenuItem
-            // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.aboutToolStripMenuItem.Text = "About";
+            this.pictureBoxScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.pictureBoxScreen.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pictureBoxScreen.Location = new System.Drawing.Point(0, 49);
+            this.pictureBoxScreen.MinimumSize = new System.Drawing.Size(640, 288);
+            this.pictureBoxScreen.Name = "pictureBoxScreen";
+            this.pictureBoxScreen.Size = new System.Drawing.Size(676, 336);
+            this.pictureBoxScreen.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.pictureBoxScreen.TabIndex = 3;
+            this.pictureBoxScreen.TabStop = false;
             // 
             // FormMain
             // 
