@@ -7,7 +7,6 @@ namespace UKNCBTL.UI
 {
     public partial class FormMain : Form
     {
-        UKNCBTL.Emulator m_Emulator;
         Bitmap m_ScreenBitmap;
 
         public FormMain()
@@ -16,13 +15,11 @@ namespace UKNCBTL.UI
 
             m_ScreenBitmap = new Bitmap(640, 288, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             pictureBoxScreen.Image = m_ScreenBitmap;
-
-            m_Emulator = new Emulator();
         }
 
         private void UpdateScreen()
         {
-            m_Emulator.RenderScreen(m_ScreenBitmap);
+            Program.GetEmulator().RenderScreen(m_ScreenBitmap);
 
             //TODO: Looks weird, rework needed
             pictureBoxScreen.Image = m_ScreenBitmap;
@@ -31,36 +28,34 @@ namespace UKNCBTL.UI
 
         private void toolStripButtonRun_Click(object sender, EventArgs e)
         {
-            if (m_Emulator.IsRunning())
+            if (Program.GetEmulator().IsRunning())
             {
                 timer1.Stop();
-                m_Emulator.Stop();
+                Program.GetEmulator().Stop();
             }
             else
             {
-                m_Emulator.LoadROM("uknc_rom.bin");
-                m_Emulator.Start();
+                Program.GetEmulator().LoadROM("uknc_rom.bin");
+                Program.GetEmulator().Start();
                 timer1.Start();
             }
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            if (!m_Emulator.IsRunning()) return;
-
-            m_Emulator.SystemFrame();
-
-            UpdateScreen();
-        }
-
         private void toolStripButtonReset_Click(object sender, EventArgs e)
         {
-            m_Emulator.Reset();
+            Program.GetEmulator().Reset();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            UpdateScreen();
+
+            toolStripStatusLabel1.Text = String.Format("{0:0.00}", Program.GetEmulator().GetUptime());
         }
     }
 }
