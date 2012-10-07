@@ -21,71 +21,76 @@
 <dd>Сохранение скриншота в формате PNG.</dd>
 
 <dt>`emulator.attachCartridge(1, 'romctr_basic.bin');` // since beta 33</dt>
-<dd>подключение картриджа</dd>
+<dd>Подключение картриджа.</dd>
 
 <dt>`emulator.detachCartridge(1);` // since beta 33
-<dd>отключение картриджа</dd>
+<dd>Отключение картриджа.</dd>
 
 <dt>`emulator.attachFloppy(0, 'sys1002.dsk');` // since beta 33</dt>
-<dd>подключение диска</dd>
+<dd>Подключение образа диска.</dd>
 
 <dt>`emulator.detachFloppy(0);` // since beta 33</dt>
-<dd>отключение диска</dd>
+<dd>Отключение диска.</dd>
 
 <dt>`emulator.attachHard(1, 'WDC170inv.img');` // since beta 33</dt>
-<dd>подключение харда, работает только если уже подключена прошивка через emulator.attachCartridge</dd>
+<dd>Подключение образа жёсткого диска, работает только если уже подключена прошивка через emulator.attachCartridge</dd>
 
 <dt>`emulator.detachHard(1);` // since beta 33</dt>
-<dd></dd>
+<dd>Отключение жёсткого диска.</dd>
 
 <dt>`emulator.getUptime()` либо свойство `emulator.uptime` // since beta 33</dt>
-<dd>возвращает number количество секунд работы эмулируемой машины, по emulator.reset() сбрасывается в 0</dd>
+<dd>Возвращает тип number -- количество секунд работы эмулируемой машины, по emulator.reset() сбрасывается в 0.</dd>
 
 <dt>`emulator.keyScan(0153);` // since beta 33</dt>
-<dd>нажимает клавишу (задаётся скан-код), прогон 3 фрейма, отпускает, прогон 3 фрейма</dd>
+<dd>Нажимает клавишу (задаётся скан-код), прогон 3 фрейма, отпускает, прогон 3 фрейма.</dd>
 
 <dt>`emulator.keyScan(0153, 6);` // since beta 33</dt>
-<dd>то же но задаётся интервал (фреймов) от нажатия до отжатия</dd>
+<dd>То же, но задаётся интервал (фреймов) от нажатия до отжатия.</dd>
 
 <dt>`emulator.keyScanShift(0013);` // since beta 33</dt>
-<dd>нажатие SHIFT, 2 фрейма, нажатие клавиши, 3 фрейма, отжатие клавиши, 2 фрейма, отжатие SHIFT, 3 фрейма -- т.е. комбинация для ввода символа в другом регистре</dd>
+<dd>Нажатие SHIFT, 2 фрейма, нажатие клавиши, 3 фрейма, отжатие клавиши, 2 фрейма, отжатие SHIFT, 3 фрейма -- т.е. комбинация для ввода символа в другом регистре.</dd>
 
 <dt>`emulator.keyString('1\n');` // since beta 33</dt>
-<dd>ввод серии символов; для каждого ASCII-символа ищется скан-код, если нужно используется нажатие SHIFT</dd>
+<dd>Ввод серии символов; для каждого ASCII-символа ищется скан-код, если нужно используется нажатие SHIFT.</dd>
 
 <dt>`emulator.getCPU()` либо `emulator.cpu` // since beta 33</dt>
-<dd>получение объекта для ЦП</dd>
+<dd>Получение объекта для ЦП.</dd>
 
 <dt>`emulator.getPPU()` либо `emulator.ppu` // since beta 33</dt>
-<dd>получение объекта для ПП</dd>
+<dd>Получение объекта для ПП.</dd>
+
+<dt>`emulator.consolePrint('message')` // since beta ??</dt>
+<dd>Вывод сообщения в окно отладочной консоли; это окно видно если показаны отладочные окна.</dd>
 
 == Методы объектов emulator.cpu и emulator.ppu ==
+(В примерах используется `emulator.ppu`, для `emulator.cpu` работает точно также.)
 
 <dt>`emulator.ppu.getName()` либо `emulator.ppu.name` // since beta 33</dt>
-<dd>название процессора, "CPU" либо "PPU"</dd>
+<dd>Название процессора, "CPU" либо "PPU".</dd>
 
 <dt>`emulator.ppu.getReg(0)` либо `emulator.ppu.r(0)` // since beta 33</dt>
-<dd>значение в регистре 0..7</dd>
+<dd>Значение в регистре 0..7.</dd>
 
 <dt>`emulator.ppu.getPC()` либо `emulator.ppu.pc` // since beta 33</dt>
-<dd>значение в регистре 7</dd>
+<dd>Значение в регистре 7.</dd>
 
 <dt>`emulator.ppu.getSP()` либо `emulator.ppu.sp` // since beta 33</dt>
-<dd>значение в регистре 6</dd>
+<dd>Значение в регистре 6.</dd>
 
 <dt>`emulator.ppu.getPSW()` либо `emulator.ppu.psw` // since beta 33</dt>
-<dd>значение в PSW</dd>
+<dd>Значение в PSW.</dd>
 
 <dt>`emulator.ppu.isHalt()` либо `emulator.ppu.halt` // since beta 33</dt>
-<dd>признак HALT/USER режима</dd>
+<dd>Признак HALT/USER режима.</dd>
 
 <dt>`emulator.ppu.readWord(0160304)` // since beta 33</dt>
-<dd>прочитать слово из памяти процессора</dd>
+<dd>Прочитать слово из памяти процессора.</dd>
 
 <dt>`emulator.ppu.disassemble(0160304)` // since beta 33</dt>
-<dd>дизассемблирует одну инструкцию по заданному адресу, возвращает массив из четырёх элементов: { address, instruction, arguments, instruction length }</dd>
+<dd>Дизассемблирует одну инструкцию по заданному адресу, возвращает массив из четырёх элементов: { address, instruction, arguments, instruction length }.</dd>
 
 == Пример скрипта ==
+Сбрасываем машинку, записываем процесс загрузки в виде скриншотов через каждые 10 фреймов:
 {{{
 emulator.reset();
 
@@ -95,3 +100,7 @@ for (i = 0; i < 10; i++)
   emulator.saveScreenshot('test' + i + '.png');
 }
 }}}
+
+== Советы и находки ==
+
+Для перевода числа в строку в восьмеричной системе используем `toString(8)`.
