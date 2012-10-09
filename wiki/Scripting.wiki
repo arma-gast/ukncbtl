@@ -80,11 +80,26 @@
 <dt>`emulator.ppu.getPSW()` либо `emulator.ppu.psw` // since beta 33</dt>
 <dd>Значение в PSW.</dd>
 
+<dt>`emulator.ppu.setReg(0, 0123456)` // since beta ??</dt>
+<dd>Изменить значение в регистре 0..7.</dd>
+
+<dt>`emulator.ppu.setPC(0123456)` либо `emulator.ppu.pc = 0123456` // since beta ??</dt>
+<dd>Изменить значение в регистре 7.</dd>
+
+<dt>`emulator.ppu.setSP(0123456)` либо `emulator.ppu.sp = 0123456` // since beta ??</dt>
+<dd>Изменить значение в регистре 6.</dd>
+
+<dt>`emulator.ppu.setPSW(0123456)` либо `emulator.ppu.psw = 0123456` // since beta ??</dt>
+<dd>Изменить значение в регистре PSW.</dd>
+
 <dt>`emulator.ppu.isHalt()` либо `emulator.ppu.halt` // since beta 33</dt>
 <dd>Признак HALT/USER режима.</dd>
 
 <dt>`emulator.ppu.readWord(0160304)` // since beta 33</dt>
 <dd>Прочитать слово из памяти процессора.</dd>
+
+<dt>`emulator.ppu.readByte(0160304)` // since beta ??</dt>
+<dd>Прочитать байт из памяти процессора.</dd>
 
 <dt>`emulator.ppu.disassemble(0160304)` // since beta 33</dt>
 <dd>Дизассемблирует одну инструкцию по заданному адресу, возвращает массив из четырёх элементов: { address, instruction, arguments, instruction length }.</dd>
@@ -104,3 +119,10 @@ for (i = 0; i < 10; i++)
 == Советы и находки ==
 
 Для перевода числа в строку в восьмеричной системе используем `toString(8)`.
+
+== Ссылки ==
+Подобный скриптинг в других эмуляторах:
+ * http://code.google.com/p/snes9x-rr/wiki/LuaScriptingFunctions
+ * http://code.google.com/p/psxjin/wiki/LuaScriptingFunctions
+ * http://code.google.com/p/vba-rerecording/wiki/LuaScriptingFunctions
+ * http://www.fceux.com/web/help/fceux.html
