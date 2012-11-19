@@ -50,3 +50,6 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-BoulderDash-0.png
 Текстовая игра "Стань стальной крысой":
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-SteelRat-0.png
+
+== См. также ==
+ * http://www.old-games.ru/forum/showthread.php?p=828719#post828719
