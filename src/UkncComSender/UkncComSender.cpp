@@ -7,6 +7,7 @@
 
 LPCTSTR g_sComPortName = NULL;
 LPCTSTR g_sFileName = NULL;
+LPCTSTR g_sCommDcbStr = NULL;
 
 //000000  000240         NOP               ; Опознавательный знак
 //000002  000447         BR      000122    ; Запуск загрузчика
@@ -47,19 +48,28 @@ static WORD const loader1[] = {
 /*460*/ 000000, 000000, 000000, 000000, 000000, 000000, 000000, 000000, 
 };
 
-
-int _tmain(int argc, TCHAR* argv[])
+bool ParseCommandLine(int argc, TCHAR* argv[])
 {
-    wprintf(_T("UkncComSender Utility  by Nikita Zimin  [%S %S]\n\n"), __DATE__, __TIME__);
-
-    // Parse command line
     for (int argn = 1; argn < argc; argn++)
     {
         LPCTSTR arg = argv[argn];
         if (arg[0] == _T('-') || arg[0] == _T('/'))
         {
-            wprintf(_T("Unknown option: %s\n"), arg);
-            return false;
+            if (_wcsicmp(arg + 1, _T("dcb")) == 0)
+            {
+                argn++;
+                if (argn == argc)
+                {
+                    wprintf(_T("Missing parameter for option -dcb.\n"));
+                    return false;
+                }
+                g_sCommDcbStr = argv[argn];
+            }
+            else
+            {
+                wprintf(_T("Unknown option: %s\n"), arg);
+                return false;
+            }
         }
         else
         {
@@ -79,11 +89,41 @@ int _tmain(int argc, TCHAR* argv[])
     if (g_sComPortName == NULL)
     {
         wprintf(_T("Serial port name is not specified.\n"));
-        return -1;
+        return false;
     }
     if (g_sFileName == NULL)
     {
         wprintf(_T("File name is not specified.\n"));
+        return false;
+    }
+
+    return true;
+}
+
+int _tmain(int argc, TCHAR* argv[])
+{
+    wprintf(_T("UkncComSender Utility  v1.2  by Nikita Zimin  [%S %S]\n\n"), __DATE__, __TIME__);
+
+    if (!ParseCommandLine(argc, argv))
+    {
+        wprintf(
+            _T("\n")
+            _T("Usage: UkncComSender [<Options>] <PortName> <FileToSendName>\n")
+            _T("Options:\n")
+            _T("  -dcb \"<DcbParams>\"\n")
+            _T("<DcbParams>:\n")
+            _T("  baud=b\n")
+            _T("  parity={n|e|o|m|s}\n")
+            _T("  data={5|6|7|8}\n")
+            _T("  stop={1|1.5|2}\n")
+            _T("  to={on|off}\n")
+            _T("  xon={on|off}\n")
+            _T("  odsr={on|off}\n")
+            _T("  octs={on|off}\n")
+            _T("  dtr={on|off|hs}\n")
+            _T("  rts={on|off|hs|tg}\n")
+            _T("  idsr={on|off}\n")
+            _T("\n"));
         return -1;
     }
 
@@ -101,9 +141,8 @@ int _tmain(int argc, TCHAR* argv[])
     }
     wprintf(_T("Serial port %s opened.\n"), g_sComPortName);
 
-    // Set port settings
+    // Prepare port settings
     DCB dcb;
-    //::GetCommState(m_portHandle, &dcb);
     ::memset(&dcb, 0, sizeof(dcb));
     dcb.DCBlength = sizeof(dcb);
     dcb.BaudRate = 9600;
@@ -121,6 +160,14 @@ int _tmain(int argc, TCHAR* argv[])
     dcb.fAbortOnError = FALSE;
     dcb.Parity = NOPARITY;
     dcb.StopBits = ONESTOPBIT;
+    if (!::BuildCommDCB(g_sCommDcbStr, &dcb))
+    {
+        ::CloseHandle(hComPort);
+        hComPort = INVALID_HANDLE_VALUE;
+        DWORD dwError = ::GetLastError();
+        wprintf(_T("Failed to parse port configuration string \"%s\" (0x%08lx).\n"), g_sCommDcbStr, dwError);
+        return FALSE;
+    }
     if (!::SetCommState(hComPort, &dcb))
     {
         ::CloseHandle(hComPort);
@@ -156,12 +203,20 @@ int _tmain(int argc, TCHAR* argv[])
     // Open the input file
     wprintf(_T("Opening the input file %s...\n"), g_sFileName);
     FILE* fpfile = ::_wfopen(g_sFileName, _T("rb"));
+    if (fpfile == 0)
+    {
+        ::CloseHandle(hComPort);
+        hComPort = INVALID_HANDLE_VALUE;
+        wprintf(_T("Failed to open file %s for reading.\n"), g_sFileName);
+        return -1;
+    }
 
     //TODO: Get file size
 
     wprintf(_T("Reading the first block...\n"));
     BYTE buffer[512];
     size_t lBytesRead = ::fread(buffer, 1, 512, fpfile);
+    //TODO: Check for error
 
     // Prepare the loader
     //const char filename[] = "SAMPLE";
@@ -209,6 +264,7 @@ int _tmain(int argc, TCHAR* argv[])
     {
         int blocklen = (remlen >= 512) ? 512 : remlen;
         lBytesRead = ::fread(buffer, 1, blocklen, fpfile);
+        //TODO: Check for error
         for (int i = 0; i < blocklen; i++)
         {
             DWORD dwBytesWritten;
