@@ -5,6 +5,10 @@
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNC_KINGOM.png
 
+Текстовая игра "Стань стальной крысой":
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-SteelRat-0.png
+
 Hot Line (клон Sokoban):
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Soukob.png
@@ -47,9 +51,13 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-BoulderDash-1.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-BoulderDash-0.png
 
-Текстовая игра "Стань стальной крысой":
+Puckman (ИТО):
 
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-SteelRat-0.png
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Puckman-3.png
+
+Lode Runner (ИТО):
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-LodeRunner-1.png
 
 == См. также ==
  * http://www.old-games.ru/forum/showthread.php?p=828719#post828719
