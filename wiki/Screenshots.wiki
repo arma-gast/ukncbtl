@@ -46,3 +46,11 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TurboBasic-4.png
 PAF Commander Александра Петросяна:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-PAFCommander.png
+
+Графический редактор JEK:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-JEK-LE.png
+
+Полный набор цветов УКНЦ -- тест TSPAL.SAV:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TSPAL-RGB.png
