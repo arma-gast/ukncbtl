@@ -64,10 +64,10 @@ bool ParseCommandLine(int argc, char* argv[])
 void PrintUsage()
 {
     std::cerr << "Usage:" << std::endl
-              << "\tESCParser [options] InputFile > OutputFile" << std::endl
-              << "Options:" << std::endl
-              << "\t-ps\tPostScript output with multipage support" << std::endl
-              << "\t-svg\tSVG output, no multipage support" << std::endl;
+            << "\tESCParser [options] InputFile > OutputFile" << std::endl
+            << "Options:" << std::endl
+            << "\t-ps\tPostScript output with multipage support" << std::endl
+            << "\t-svg\tSVG output, no multipage support" << std::endl;
 }
 
 void main(int argc, char* argv[])
