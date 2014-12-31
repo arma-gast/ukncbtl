@@ -47,9 +47,9 @@ PAF Commander Александра Петросяна:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-PAFCommander.png
 
-Графический редактор JEK:
+Графический редактор JEK, вверху реальное изображение с УКНЦ, внизу скриншот эмулятора:
 
-http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-JEK-LE.png
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-JEK-LE-vs-real.png
 
 Полный набор цветов УКНЦ -- тест TSPAL.SAV:
 
