@@ -69,3 +69,8 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Debugger-small.p
 130150:	MTPS	#0
 	RETURN
 }}}
+
+== Стрелки переходов ==
+Начиная с версии 543, в отладчике показываются стрелки переходов, для того чтобы легче было понимать структуру кода:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/UKNCBTL-Debugger-curves.png
