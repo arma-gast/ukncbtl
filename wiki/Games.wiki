@@ -19,7 +19,7 @@ CHESS:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Chess-1.png
 
-Игра Замок Гоблинов (клон Lode Runner):
+Игра Замок Гоблинов (клон Lode Runner) by Sendik:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Zamok-Goblinov.png
 
@@ -29,17 +29,17 @@ DIGGER:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Digger.png
 
-CASTLE:
+CASTLE by ASP Corp.:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-0.png
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Castle-1.png
 
-VERT:
+VERT by ASP Corp.:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Vert-0.png
 
-LAND:
+LAND by ASP Corp.:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-Land-0.png
 
@@ -61,3 +61,4 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-LodeRunner-1.png
 
 == См. также ==
  * http://www.old-games.ru/forum/showthread.php?p=828719#post828719
+ * [http://www.old-games.ru/articles/53651.html ASP Corp. - История и наследие известнейшей группы разработчиков программ в СССР]
