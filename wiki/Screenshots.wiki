@@ -54,3 +54,10 @@ http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-JEK-LE-vs-real.png
 Полный набор цветов УКНЦ -- тест TSPAL.SAV:
 
 http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-TSPAL-RGB.png
+
+Редактор CIR от "Электронные работы" -- в редакторе открыт файл PKRAM.SCM с дискеты от Союз-Неон:
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-CIR-PKRAM-1.png
+
+http://ukncbtl.googlecode.com/svn/trunk/docs/screenshot/Uknc-CIR-PKRAM-2.png
+
